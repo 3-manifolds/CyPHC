@@ -1,7 +1,14 @@
 # Configure this
+#For OS X
+#GNATMAKE=/usr/local/ada-4.3/bin/gnatmake
+#GNATBIND=/usr/local/ada-4.3/bin/gnatbind
+#GNATFLAGS=-gnat95 -gnatv -O3 -gnatp -gnatf --GNATBIND="gnatbind -static"
+#For Linux
+GNATMAKE=gnatmake
+GNATBIND=gnatbind
+GNATFLAGS=-gnat95 -gnatv -O3 -fPIC -gnatp -gnatf --GNATBIND="gnatbind -static"
+#################
 PHCRoot=../PHCsource
-GNATMAKE=/usr/local/ada-4.3/bin/gnatmake
-GNATBIND=/usr/local/ada-4.3/bin/gnatbind
 PHCLib=$(PHCRoot)/Lib
 PHCAda=$(PHCRoot)/Ada
 BIN=$(PHCRoot)/bin
@@ -22,9 +29,6 @@ INCLULIBS=-I$(PHCAda)/System -I$(PHCAda)/System/Unix_Timer \
  -I$(PHCAda)/Differentials -I$(PHCAda)/Tasking -I$(PHCAda)/Main \
  -I$(PHCAda)/CtoPHC/Funky -I$(PHCAda)/CtoPHC/State
 
-GNATFLAGS=-gnat95 -gnatv -O3 -gnatp -gnatf --GNATBIND="gnatbind -static"
-COFLAGS=-O2
-CFLAGS=$(COFLAGS) 
 
 phc.so: b_cy2ada.c phc.pyx
 	python setup.py build_ext --inplace
