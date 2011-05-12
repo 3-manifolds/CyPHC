@@ -12,3 +12,6 @@ definition of gnatlink_cmd in setup.py .
 
 If PHC has been updated since this was written you may need to
 edit the definition of PHCDIR in getPHC.sh .
+
+Under OS X you may have to edit the path to the libpython dylib file
+in setup.py .
