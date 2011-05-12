@@ -21,64 +21,72 @@ with Standard_Complex_Poly_Strings;    use Standard_Complex_Poly_Strings;
 
 package body Cy2ada is
 
-   function New_Poly ( N : Integer; Input_String : Chars_Ptr) return Poly is
+   function New_Poly ( N : in Integer; Input_String : in Chars_Ptr)
+                     return Poly is
       V  : constant string := Value(Input_String);
-      P  : Poly;
    -- Create a new PHC Poly object from a C string.
    begin
       Symbol_Table.Init(N);
-      P := Parse(N ,V);
-      return P;
+      return Parse(N ,V);
    exception
       when others => return Null_Poly;
    end New_Poly;
 
-   function Is_Null_Poly( P : Poly ) return integer is
+   function Is_Null_Poly( P : Poly )
+                        return integer is
       -- Test if a PHC Poly is null
-     begin
-        if P = Null_Poly Then
-           return 1;
-        else return 0;
-        end if;
-     end Is_Null_Poly;
+   begin
+      if P = Null_Poly Then
+         return 1;
+      else return 0;
+      end if;
+   end Is_Null_Poly;
 
    procedure Free_Poly ( Poly_Ptr : in Poly ) is
-      P : Poly := Poly_Ptr;   -- pointer parameters must be copied to a variable.
+      P : Poly := Poly_Ptr;
       -- Free a PHC Poly object.
    begin
       Clear(P);
    end Free_Poly;
 
-   function Num_Unknowns ( P : in Poly ) return Natural is
+   function Num_Unknowns ( P : in Poly )
+                         return Natural is
       -- Return the number of variables of a Poly
    begin
       return Number_Of_Unknowns(P);
    end Num_Unknowns;
 
-   function Num_Terms ( P : in Poly ) return Natural is
+   function Num_Terms ( P : in Poly )
+                      return Natural is
       -- Return the number of terms of a Poly
    begin
       return Number_Of_Terms(P);
    end Num_Terms;
 
+   function Degrees_From_C(Ints : in Int_Ptr; N : in Integer)
+                          return Degrees is
+      Ptr : Int_Ptr := Ints;
+      Result : Degrees := new Standard_Natural_Vectors.Vector'(1..N => 0);
+      begin
+         for K in 1..N loop
+            Result(K) := Integer( Ptr.all );
+            Increment(Ptr);
+         end loop;
+         return Result;
+      end Degrees_From_C;
+
    procedure Poly_Coeff( P : in Poly;
-                         Deg_Ptr : in Int_Ptr;
-                         Res_Ptr: in Double_Ptr) is
-      Dim           : Integer := Number_Of_Unknowns(P);
-      Deg_Vector : Degrees := new Standard_Natural_Vectors.Vector'(1..Dim => 0);
-      D             : Int_Ptr := Deg_Ptr;
-      Result        : Double_Ptr;
-      C             : Complex_Number;
+                         Degs : in Int_Ptr;
+                         Res : in Double_Ptr) is
+      D    : Int_Ptr    := Degs;
+      C    : Double_Ptr := Res;
+      Dim  : Integer    := Number_Of_Unknowns(P);
+      Z    : Complex_Number;
    begin
-      Result := Res_Ptr;
-      for K in 1..Dim loop
-         Deg_Vector(K) := Integer( D.all );
-         Increment(D);
-      end loop;
-      C := Coeff(P, Deg_Vector);
-      Result.all := double(REAL_PART(C));
-      Increment(Result);
-      Result.all := double(IMAG_PART(C));
+      Z := Coeff(P, Degrees_From_C(D, Dim));
+      C.all := double(REAL_PART(Z));
+      Increment(C);
+      C.all := double(IMAG_PART(Z));
    end Poly_Coeff;
 
    procedure Get_Terms ( P : in Poly;
@@ -97,8 +105,7 @@ package body Cy2ada is
          end loop;
          R.all := double(REAL_PART(T.cf));
          I.all := double(IMAG_PART(T.Cf));
-         Increment(R);
-         Increment(I);
+         Increment(R); Increment(I);
          Continue := True;
       end Visit_Term;
       procedure Visit_Terms is new Visiting_Iterator(Visit_Term);
@@ -141,5 +148,9 @@ package body Cy2ada is
    begin
       Free(S);
    end Free_String;
+
+
+
+
 
 end Cy2ada;

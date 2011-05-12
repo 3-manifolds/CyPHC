@@ -39,7 +39,9 @@ package Cy2ada is
    function Num_Terms ( P : in Poly ) return Natural;
    pragma Export ( C, Num_Terms, "num_terms" );
 
-   procedure Poly_Coeff( P : in Poly;  Deg_Ptr : in Int_Ptr; Res_Ptr : in Double_Ptr);
+   procedure Poly_Coeff( P    : in Poly;
+                         Degs : in Int_Ptr;
+                         Res  : in Double_Ptr);
    pragma Export ( C, Poly_Coeff, "poly_coeff" );
 
    procedure Call_Poly( P      : in Poly;
