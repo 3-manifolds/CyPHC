@@ -1,12 +1,12 @@
 # Configure this
 #For OS X
-#GNATMAKE=/usr/local/ada-4.3/bin/gnatmake
-#GNATBIND=/usr/local/ada-4.3/bin/gnatbind
-#GNATFLAGS=-gnat95 -gnatv -O3 -gnatp -gnatf --GNATBIND="gnatbind -static"
+GNATMAKE=/usr/local/ada-4.3/bin/gnatmake
+GNATBIND=/usr/local/ada-4.3/bin/gnatbind
+GNATFLAGS=-gnat95 -gnatv -O3 -gnatp -gnatf --GNATBIND="gnatbind -static"
 #For Linux
-GNATMAKE=gnatmake
-GNATBIND=gnatbind
-GNATFLAGS=-gnat95 -gnatv -O3 -fPIC -gnatp -gnatf --GNATBIND="gnatbind -static"
+#GNATMAKE=gnatmake
+#GNATBIND=gnatbind
+#GNATFLAGS=-gnat95 -gnatv -O3 -fPIC -gnatp -gnatf --GNATBIND="gnatbind -static"
 #################
 PHCRoot=../PHCsource
 PHCLib=$(PHCRoot)/Lib

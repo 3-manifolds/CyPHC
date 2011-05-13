@@ -6,7 +6,7 @@ cdef extern from "stdlib.h":
 cdef extern void adainit()
 cdef extern void adafinal()
 
-cdef extern void* new_poly(int n, char *s)
+cdef extern void* new_poly(int n, char *s, int *code)
 cdef extern void free_ada_poly(void *p)
 cdef extern int is_null_poly(void *p)
 cdef extern char* poly_to_string(void *p)
@@ -38,12 +38,17 @@ cdef class PHCPoly:
     """
     cdef void* poly
     cdef initstring
-
+    cdef int code
+    errors = ['Illegal character.',
+              'Illegal operator.',
+              'Unknown variable.',
+              'Unbalanced brackets',
+              'Unknown parse error']
     def __init__(self, dim, initstring):
         self.initstring = initstring+';'
-        self.poly = new_poly(dim, self.initstring)
-        if is_null_poly(self.poly):
-            raise RuntimeError, 'PHC parse error.'
+        self.poly = new_poly(dim, self.initstring, &self.code)
+        if self.code:
+            raise ValueError, self.errors[self.code - 1]
 
     def __dealloc__(self):
         free_ada_poly(self.poly)
