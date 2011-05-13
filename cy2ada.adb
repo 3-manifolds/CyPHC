@@ -6,7 +6,7 @@ with Interfaces.C.Extensions;          use Interfaces.C.Extensions;
 with Symbol_Table;
 with Strings_And_Numbers;              use Strings_And_Numbers;
 with Generic_Polynomials;
-with Parse_Polynomial_Exceptions;
+with Parse_Polynomial_Exceptions;      use Parse_Polynomial_Exceptions;
 with Standard_Natural_Vectors;
 with Standard_Complex_Vectors;         use Standard_Complex_Vectors;
 with Standard_Floating_Numbers;        use Standard_Floating_Numbers;
@@ -21,15 +21,22 @@ with Standard_Complex_Poly_Strings;    use Standard_Complex_Poly_Strings;
 
 package body Cy2ada is
 
-   function New_Poly ( N : in Integer; Input_String : in Chars_Ptr)
+   function New_Poly ( N : in Integer;
+                       Input_String : in Chars_Ptr;
+                       Return_Code : in Int_Ptr)
                      return Poly is
+      Code : Int_Ptr := Return_Code;
       V  : constant string := Value(Input_String);
    -- Create a new PHC Poly object from a C string.
    begin
       Symbol_Table.Init(N);
       return Parse(N ,V);
    exception
-      when others => return Null_Poly;
+      when ILLEGAL_CHARACTER => Code.all := 1; return Null_Poly;
+      when ILLEGAL_OPERATION => Code.all := 2; return Null_Poly;
+      when OVERFLOW_OF_UNKNOWNS => Code.all := 3; return Null_Poly;
+      when BAD_BRACKET => Code.all := 4; return Null_Poly;
+      when others => Code.all := 5; return Null_Poly;
    end New_Poly;
 
    function Is_Null_Poly( P : Poly )

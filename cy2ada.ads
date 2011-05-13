@@ -18,7 +18,7 @@ package Cy2ada is
    use Doubles_Ptrs;
    type Double_Ptr is new Doubles_Ptrs.Pointer;
 
-   function New_Poly ( N : Integer; Input_String : Chars_Ptr ) return Poly;
+   function New_Poly ( N : Integer; Input_String : Chars_Ptr; Return_Code : Int_Ptr ) return Poly;
    pragma Export ( C, New_Poly, "new_poly" );
 
    procedure Free_Poly ( Poly_Ptr : in Poly );
