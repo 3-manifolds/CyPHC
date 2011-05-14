@@ -1,8 +1,9 @@
-# Configure this
+# These variables are set in make.py, to allow the
+# Makefile to be platform independent.
 #For OS X
-GNATMAKE=/usr/local/ada-4.3/bin/gnatmake
-GNATBIND=/usr/local/ada-4.3/bin/gnatbind
-GNATFLAGS=-gnat95 -gnatv -O3 -gnatp -gnatf --GNATBIND="gnatbind -static"
+#GNATMAKE=/usr/local/ada-4.3/bin/gnatmake
+#GNATBIND=/usr/local/ada-4.3/bin/gnatbind
+#GNATFLAGS=-gnat95 -gnatv -O3 -gnatp -gnatf --GNATBIND="gnatbind -static"
 #For Linux
 #GNATMAKE=gnatmake
 #GNATBIND=gnatbind
