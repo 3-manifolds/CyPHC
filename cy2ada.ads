@@ -4,6 +4,7 @@ with Interfaces.C.Strings;             use Interfaces.C.Strings;
 with Interfaces.C.Pointers;
 with Standard_Complex_Polynomials;     use Standard_Complex_Polynomials;
 with Generic_Polynomials;
+with Symbol_Table;
 
 package Cy2ada is
    type Int_Array is array ( Integer range <>) of aliased int;
@@ -18,11 +19,19 @@ package Cy2ada is
    use Doubles_Ptrs;
    type Double_Ptr is new Doubles_Ptrs.Pointer;
 
-   function New_Poly ( N : Integer; Input_String : Chars_Ptr; Return_Code : Int_Ptr ) return Poly;
+   procedure Reset_Symbols( Max : in Integer);
+   pragma Export ( C, Reset_Symbols, "reset_symbols" );
+
+   procedure Add_Symbol( Symbol_Str : in Chars_Ptr );
+   pragma Export ( C, Add_Symbol, "add_symbol" );
+
+   function New_Poly ( N : Integer;
+                       Input_String : Chars_Ptr;
+                       Return_Code : Int_Ptr ) return Poly;
    pragma Export ( C, New_Poly, "new_poly" );
 
    procedure Free_Poly ( Poly_Ptr : in Poly );
-   pragma Export ( C, Free_Poly, "free_ada_poly" );
+   pragma Export ( C, Free_Poly, "free_poly" );
 
    function Is_Null_Poly( P : Poly) return Integer;
    pragma Export ( C, Is_Null_Poly, "is_null_poly" );
@@ -55,5 +64,12 @@ package Cy2ada is
                          Reals : in Double_Ptr;
                          Imags : in Double_Ptr);
    pragma Export ( C, Get_Terms, "get_terms" );
+
+   function Specialize_Poly (P      : in Poly;
+                             X_Real : in Double_Ptr;
+                             X_Imag : in Double_Ptr;
+                             N      : in Integer) return Poly;
+   pragma Export ( C, Specialize_Poly, "specialize_poly" );
+
 
 end Cy2ada;
