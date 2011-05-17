@@ -2,7 +2,7 @@ from os import environ
 from sys import platform
 from subprocess import call
 
-if platform == 'Darwin':
+if platform == 'darwin':
     args = [
         'make',
         'GNATMAKE=/usr/local/ada-4.3/bin/gnatmake',
@@ -18,6 +18,8 @@ elif platform == 'linux2':
         ('GNATFLAGS=-gnat95 -gnatv -O3 -gnatp -gnatf -fPIC '+
          '--GNATBIND="gnatbind -static"')
         ]
-
+else:
+    print 'Unknown platform'
+    
 call(args)
     

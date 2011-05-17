@@ -30,8 +30,17 @@ INCLULIBS=-I$(PHCAda)/System -I$(PHCAda)/System/Unix_Timer \
  -I$(PHCAda)/Differentials -I$(PHCAda)/Tasking -I$(PHCAda)/Main \
  -I$(PHCAda)/CtoPHC/Funky -I$(PHCAda)/CtoPHC/State
 
+MVRoot=$(PHCRoot)/Ada/Root_Counts/MixedVol
 
-phc.so: b_cy2ada.c phc.pyx
+MVSRC=$(MVRoot)/cell_stack.c $(MVRoot)/form_lp.c $(MVRoot)/index_tree_lp.c \
+ $(MVRoot)/zero_index_tree.c $(MVRoot)/one_level_lp.c $(MVRoot)/mixed_volume.c \
+ $(MVRoot)/relation_table.c $(MVRoot)/prepare_for_mv.c
+
+MVOBJ=$(MVRoot)/cell_stack.o $(MVRoot)/form_lp.o $(MVRoot)/index_tree_lp.o \
+ $(MVRoot)/zero_index_tree.o $(MVRoot)/one_level_lp.o $(MVRoot)/mixed_volume.o \
+ $(MVRoot)/relation_table.o $(MVRoot)/prepare_for_mv.o
+
+phc.so: b_cy2ada.c phc.pyx mv_glue.o
 	python setup.py build_ext --inplace
 
 b_cy2ada.c: Ada_build
@@ -41,6 +50,9 @@ b_cy2ada.c: Ada_build
 
 Ada_build:
 	mkdir Ada_build
+
+mv_glue.o: Ada_build mv_glue.c
+	cd Ada_build; gcc -c -I$(MVRoot) $(MVSRC) ../mv_glue.c
 
 clean :
 	-rm -rf Ada_build build phc.c phc.so b_cy2ada.c
