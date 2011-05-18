@@ -52,7 +52,7 @@ PHCbuild:
 	mkdir PHCbuild
 
 mv_glue.o: PHCbuild mv_glue.c
-	cd PHCbuild; gcc -c $(FLAGS) -I$(MVRoot) $(MVSRC) ../mv_glue.c
+	cd PHCbuild; gcc -c $(GCCFLAGS) -I$(MVRoot) $(MVSRC) ../mv_glue.c
 
 clean :
 	-rm -rf PHCbuild build phc.c phc.so b_cy2ada.c
