@@ -7,16 +7,16 @@ from os import environ
 import sys
 from sys import platform
 
-Adaobjs = [path.join('Ada_build', 'cy2ada'),
-           path.join('Ada_build', 'mv_glue.o'),
-           path.join('Ada_build', 'cell_stack.o'),
-           path.join('Ada_build', 'form_lp.o'),
-           path.join('Ada_build', 'index_tree_lp.o'),
-           path.join('Ada_build', 'zero_index_tree.o'),
-           path.join('Ada_build', 'one_level_lp.o'),
-           path.join('Ada_build', 'mixed_volume.o'),
-           path.join('Ada_build', 'relation_table.o'),
-           path.join('Ada_build', 'prepare_for_mv.o')]
+Adaobjs = [path.join('PHCbuild', 'cy2ada'),
+           path.join('PHCbuild', 'mv_glue.o'),
+           path.join('PHCbuild', 'cell_stack.o'),
+           path.join('PHCbuild', 'form_lp.o'),
+           path.join('PHCbuild', 'index_tree_lp.o'),
+           path.join('PHCbuild', 'zero_index_tree.o'),
+           path.join('PHCbuild', 'one_level_lp.o'),
+           path.join('PHCbuild', 'mixed_volume.o'),
+           path.join('PHCbuild', 'relation_table.o'),
+           path.join('PHCbuild', 'prepare_for_mv.o')]
 gnatlink_cmd = 'gnatlink'
 
 # Use the gnatlink command in place of the gcc linker

@@ -43,16 +43,16 @@ MVOBJ=$(MVRoot)/cell_stack.o $(MVRoot)/form_lp.o $(MVRoot)/index_tree_lp.o \
 phc.so: b_cy2ada.c phc.pyx mv_glue.o
 	python setup.py build_ext --inplace
 
-b_cy2ada.c: Ada_build
-	cd Ada_build; $(GNATMAKE) -c $(INCLULIBS) $(GNATFLAGS) ../cy2ada
-	$(GNATBIND) -n -C Ada_build/cy2ada
+b_cy2ada.c: PHCbuild
+	cd PHCbuild; $(GNATMAKE) -c $(INCLULIBS) $(GNATFLAGS) ../cy2ada
+	$(GNATBIND) -n -C PHCbuild/cy2ada
 	-rm phc.c
 
-Ada_build:
-	mkdir Ada_build
+PHCbuild:
+	mkdir PHCbuild
 
-mv_glue.o: Ada_build mv_glue.c
-	cd Ada_build; gcc -c $(FLAGS) -I$(MVRoot) $(MVSRC) ../mv_glue.c
+mv_glue.o: PHCbuild mv_glue.c
+	cd PHCbuild; gcc -c $(FLAGS) -I$(MVRoot) $(MVSRC) ../mv_glue.c
 
 clean :
-	-rm -rf Ada_build build phc.c phc.so b_cy2ada.c
+	-rm -rf PHCbuild build phc.c phc.so b_cy2ada.c
