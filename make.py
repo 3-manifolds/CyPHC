@@ -16,7 +16,8 @@ elif platform == 'linux2':
         'GNATMAKE=gnatmake',
         'GNATBIND=gnatbind',
         ('GNATFLAGS=-gnat95 -gnatv -O3 -gnatp -gnatf -fPIC '+
-         '--GNATBIND="gnatbind -static"')
+         '--GNATBIND="gnatbind -static"'),
+        'FLAGS=-fPIC' 
         ]
 else:
     print 'Unknown platform'

@@ -52,7 +52,7 @@ Ada_build:
 	mkdir Ada_build
 
 mv_glue.o: Ada_build mv_glue.c
-	cd Ada_build; gcc -c -I$(MVRoot) $(MVSRC) ../mv_glue.c
+	cd Ada_build; gcc -c $(FLAGS) -I$(MVRoot) $(MVSRC) ../mv_glue.c
 
 clean :
 	-rm -rf Ada_build build phc.c phc.so b_cy2ada.c

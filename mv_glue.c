@@ -8,8 +8,8 @@
 #include "prepare_for_mv.h"
 #include "mixed_volume.h"
 
-int max ( int x, int y );  /* returns max(x,y) */
-int min ( int x, int y );  /* returns min(x,y) */
+#define max(x,y) (x) > (y) ? (x) : (y)
+#define min(x,y) (x) > (y) ? (x) : (y)
 
 int quick_return ( int nVar, int *SptIdx, int **Spt );
 /*
@@ -91,6 +91,7 @@ int compute_mixed_volume (int nVar, int nPts, int *cnt, int *support )
    return MVol;
 }
 
+/*
 int max ( int x, int y )
 { 
    if (x>=y)
@@ -106,6 +107,7 @@ int min ( int x, int y )
    else
       return y;
 }
+*/
 
 int quick_return ( int nVar, int *SptIdx, int **Spt )
 {
