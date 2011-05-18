@@ -19,7 +19,7 @@ cdef extern void poly_coeff(void* poly, int* degrees, double* coeff)
 cdef extern void get_terms(void* poly, int* degrees, double* real, double* imag)
 cdef extern void call_poly(void* poly, double* reX, double* imX, double* Y)
 cdef extern void* specialize_poly(void* p, double* real, double* imag, int v)
-cdef extern int compute_mixed_volume (int nVar, int nPts, int *cnt, int *support )
+cdef extern int compute_mixed_volume (int nVar, int nPts, int *support_indices, int **supports )
 
 cdef class PHCContext:
 
@@ -199,7 +199,7 @@ class PHCSystem:
         return '\n'.join(['System over %s:'%str(self.ring)] +
                          ['%6s'%('%d: %s'%(n,p)) for n, p in enumerate(self.polys)])
 
-    def mixed_volume(self):
+    def XXXmixed_volume(self):
         cdef int nVar = len(self.ring), nPts
         cdef int *cnt, *support
         cnt = <int*> malloc(nVar*sizeof(int))
@@ -215,9 +215,36 @@ class PHCSystem:
                 for d in multidegree:
                     support[n] = d
                     n += 1
-        result = compute_mixed_volume(nVar, nPts, cnt, support )
+#        result = compute_mixed_volume(nVar, nPts, cnt, support )
         free(support)
         free(cnt)
+#        return result
+
+    def mixed_volume(self):
+        cdef int nPts, nVar = len(self.ring)
+        cdef int i, j, n
+        cdef int *support_indices, *degrees
+        cdef int **supports
+        supplist = [p.terms().keys() for p in self.polys]
+        support_indices = <int*> malloc( (nVar + 1)*sizeof(int) )
+        nPts = 0
+        for i in range(len(supplist)):
+            support_indices[i] = nPts
+            nPts += len(supplist[i])
+        support_indices[nVar] = nPts
+        supports = <int **> malloc( nPts*sizeof(int*) )
+        n = 0
+        for S in supplist:
+            for i in range(len(S)):
+                supports[n] = <int *> malloc(nVar*sizeof(int));
+                for j in range(nVar):
+                    supports[n][j] = S[i][j]
+                n += 1
+        result = compute_mixed_volume(nVar, nPts,
+                                      support_indices, supports )
+        for i in range(nPts):
+            free(supports[i])
+        free(supports)
         return result
-        
+
 phc_context = PHCContext()
