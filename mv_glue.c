@@ -18,47 +18,35 @@ int quick_return ( int nVar, int *SptIdx, int **Spt );
  *   have fewer than two terms in them, printing a message;
  *   otherwise 0 is returned. */
 
-int compute_mixed_volume (int nVar, int nPts, int *cnt, int *support )
+int compute_mixed_volume (int nVar, int nPts, int *SptIdx, int **Spt )
 {
    int i,j,p,nS,nSpt,CellSize,MVol,nbCells;
-   int *SptIdx,**Spt,*SptType,*VtxIdx,**Vtx,*NuIdx2OldIdx;
+   int *SptType,*VtxIdx,**Vtx,*NuIdx2OldIdx;
    double *lft;
    CellStack *MCells;
 
-   SptIdx = (int*)calloc(nVar+1,sizeof(int));  /* prepare supports */
-   for(i=0; i<nVar; i++) {
-     SptIdx[i] = cnt[i];
-     printf("count %d is %d\n", i, cnt[i]);
-     }
-   SptIdx[nVar] = nPts; 
-   Spt = (int**)calloc(nPts,sizeof(int*));
-   for(i=0; i<nPts; i++) Spt[i] = (int*)calloc(nVar,sizeof(int));
-   p = 0;
-   for(i=0; i<nPts; i++)
-      for(j=0; j<nVar; j++) Spt[i][j] = support[p++];
-   for(i=nVar-1; i>=0; i--)
-      SptIdx[i] = SptIdx[i+1] - SptIdx[i];
-
    if(quick_return(nVar,SptIdx,Spt) == 1) return -1;
-       
-   SptType = (int*)calloc(nVar,sizeof(int));   /* preprocessing phase */
+   
+   /* preprocessing phase */    
+   SptType = (int*)calloc(nVar,sizeof(int));
    VtxIdx = (int*)calloc(nVar+1,sizeof(int));
    Vtx = (int**)calloc(nPts,sizeof(int*));
    for(i=0; i<nPts; i++) Vtx[i] = (int*)calloc(nVar,sizeof(int));
    NuIdx2OldIdx = (int*)calloc(nPts,sizeof(int));
    nSpt = nVar;
    Pre4MV(nVar,nSpt,&nS,SptType,Spt,SptIdx,Vtx,VtxIdx,NuIdx2OldIdx);
-   nSpt = nS;                                  /* end of preprocessing */
+   nSpt = nS;
+   /* end of preprocessing */
 
   /* srand((unsigned)(time(0))); */                /* apply a random lifting */
    srand(123323);
    lft = (double*)calloc(VtxIdx[nSpt],sizeof(double));
    for(j=0; j<VtxIdx[nSpt]; j++)
       lft[j] = 1.0+(3*(double)(rand())-(double)(rand()))/RAND_MAX;
-
+#ifdef DEBUG
    printf("The lifting values :\n");
    for(i=0; i<VtxIdx[nSpt]; i++) printf("%2.15lf\n",lft[i]);
-       
+#endif       
    CellSize = cell_size(nSpt,SptType);
 
    MCells=(CellStack*)calloc(1,sizeof(CellStack));
@@ -66,48 +54,29 @@ int compute_mixed_volume (int nVar, int nPts, int *cnt, int *support )
         
    MixedVol(nVar,nSpt,CellSize,SptType,VtxIdx,Vtx,lft,&nbCells,MCells,&MVol);
 
-   /*
+#ifdef DEBUG
    write_cells(fns,output_file,
                nVar,nSpt,SptType,Vtx,lft,CellSize,nbCells,MCells);
-   */
 
    printf("The mixed volume of this support is %d.\n",MVol);
-   /*
    printf("See the file %s",output_file);
    printf(" for a regular mixed-cell configuration.\n");
-   */
+#endif
 
    while(Cs_IsEmpty(MCells)) Cs_Pop(MCells);   /* clean memory */
 	
-   free(SptIdx); free(VtxIdx);
+   free(VtxIdx);
    for(i=0; i<nPts; i++)
    {
-      free(Spt[i]);
-      free(Vtx[i]);
+     free(Vtx[i]);
    }
-   free(Spt); free(Vtx); free(SptType);
-   free(NuIdx2OldIdx); free(lft);
+   free(Vtx);
+   free(SptType);
+   free(NuIdx2OldIdx);
+   free(lft);
        
    return MVol;
 }
-
-/*
-int max ( int x, int y )
-{ 
-   if (x>=y)
-      return x;
-   else
-      return y;
-}
-
-int min ( int x, int y )
-{
-   if(x<=y)
-      return x;
-   else
-      return y;
-}
-*/
 
 int quick_return ( int nVar, int *SptIdx, int **Spt )
 {
@@ -122,7 +91,9 @@ int quick_return ( int nVar, int *SptIdx, int **Spt )
       }
    if(k >= 0)
    {
+#ifdef DEBUG
       printf("The %d-th support has less than 2 points\n",k+1);
+#endif
       return 1;   /* end of the case: too few terms */
    }
    if(nVar == 1)
@@ -134,7 +105,9 @@ int quick_return ( int nVar, int *SptIdx, int **Spt )
          kmax = max(kmax,Spt[i][0]);
          kmin = min(kmin,Spt[i][0]);
       }
+#ifdef DEBUG
       printf("Support is 1-dimensional with mixed volume %d\n",kmax-kmin);
+#endif
       return 1;   /* end of the case: 1-variable */
    }
    for(i=0; i<SptIdx[nVar]; i++)
@@ -156,7 +129,9 @@ int quick_return ( int nVar, int *SptIdx, int **Spt )
    }
    if(j != -1)
    {
+#ifdef DEBUG
       printf("A linear support, its mixed volume <= 1\n");
+#endif
       return 1;   /* end of the case: linear system */
    } 
    return 0;      /* no quick return */
