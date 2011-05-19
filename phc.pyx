@@ -240,18 +240,19 @@ class PHCSystem:
                                       support_indices,
                                       supports,
                                       mixed_cells)
+        
+        print '%s Cells:'%mixed_cells.count
         cell = mixed_cells.top
-        while cell.next != NULL:
+        while cell != NULL:
             for i in range(mixed_cells.size):
-                for j in range(nVar):
-                    print supports[cell.idx[i]][j],
+                print cell.idx[i],
             print
             cell = cell.next
+        free_cells(mixed_cells)
+        free(mixed_cells)
         for i in range(nPts):
             free(supports[i])
         free(supports)
-        free_cells(mixed_cells)
-        free(mixed_cells)
         return result
 
 phc_context = PHCContext()

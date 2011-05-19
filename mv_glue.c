@@ -52,8 +52,10 @@ int compute_mixed_volume (int nVar, int nPts, int *SptIdx, int **Spt,
         
    MixedVol(nVar,nSpt,CellSize,SptType,VtxIdx,Vtx,lft,&nbCells,MCells,&MVol);
 
+   /*
    write_cells(10,"cells.out",
-               nVar,nSpt,SptType,Vtx,lft,CellSize,nbCells,MCells);
+                  nVar,nSpt,SptType,Vtx,lft,CellSize,nbCells,MCells);
+   */
 #ifdef DEBUG
    printf("The mixed volume of this support is %d.\n",MVol);
    printf("See the file %s",output_file);
