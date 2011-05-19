@@ -3,6 +3,16 @@ cdef extern from "stdlib.h":
     void* malloc(size_t size)
     void free(void* mem)
 
+cdef extern from "cell_stack.h":
+    ctypedef struct cell:
+        int* idx
+        cell* next
+    ctypedef struct CellStack:
+        int size
+        int count
+        cell *top
+        cell *cur
+        
 cdef extern void adainit()
 cdef extern void adafinal()
 
@@ -19,8 +29,11 @@ cdef extern void poly_coeff(void* poly, int* degrees, double* coeff)
 cdef extern void get_terms(void* poly, int* degrees, double* real, double* imag)
 cdef extern void call_poly(void* poly, double* reX, double* imX, double* Y)
 cdef extern void* specialize_poly(void* p, double* real, double* imag, int v)
-cdef extern int compute_mixed_volume (int nVar, int nPts, int *support_indices, int **supports )
-
+cdef extern int compute_mixed_volume (int nVar, int nPts,
+                                      int* support_indices,
+                                      int** supports,
+                                      CellStack* mixed_cells)
+cdef extern void free_cells(CellStack *mixed_cells)
 cdef class PHCContext:
 
     def __cinit__(self):
@@ -199,32 +212,14 @@ class PHCSystem:
         return '\n'.join(['System over %s:'%str(self.ring)] +
                          ['%6s'%('%d: %s'%(n,p)) for n, p in enumerate(self.polys)])
 
-    def XXXmixed_volume(self):
-        cdef int nVar = len(self.ring), nPts
-        cdef int *cnt, *support
-        cnt = <int*> malloc(nVar*sizeof(int))
-        supplist = [p.terms().keys() for p in self.polys]
-        nPts = 0
-        for p in range(len(supplist)):
-            cnt[p] = len(supplist[p])
-            nPts += cnt[p]
-        support = <int *> malloc(nPts*nVar*sizeof(int))
-        n = 0
-        for supp in supplist:
-            for multidegree in supp:
-                for d in multidegree:
-                    support[n] = d
-                    n += 1
-#        result = compute_mixed_volume(nVar, nPts, cnt, support )
-        free(support)
-        free(cnt)
-#        return result
-
     def mixed_volume(self):
         cdef int nPts, nVar = len(self.ring)
         cdef int i, j, n
         cdef int *support_indices, *degrees
         cdef int **supports
+        cdef CellStack *mixed_cells
+        cdef cell *cell
+        
         supplist = [p.terms().keys() for p in self.polys]
         support_indices = <int*> malloc( (nVar + 1)*sizeof(int) )
         nPts = 0
@@ -240,11 +235,23 @@ class PHCSystem:
                 for j in range(nVar):
                     supports[n][j] = S[i][j]
                 n += 1
+        mixed_cells = <CellStack*> malloc(sizeof(CellStack))
         result = compute_mixed_volume(nVar, nPts,
-                                      support_indices, supports )
+                                      support_indices,
+                                      supports,
+                                      mixed_cells)
+        cell = mixed_cells.top
+        while cell.next != NULL:
+            for i in range(mixed_cells.size):
+                for j in range(nVar):
+                    print supports[cell.idx[i]][j],
+            print
+            cell = cell.next
         for i in range(nPts):
             free(supports[i])
         free(supports)
+        free_cells(mixed_cells)
+        free(mixed_cells)
         return result
 
 phc_context = PHCContext()

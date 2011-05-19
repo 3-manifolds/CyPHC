@@ -18,12 +18,12 @@ int quick_return ( int nVar, int *SptIdx, int **Spt );
  *   have fewer than two terms in them, printing a message;
  *   otherwise 0 is returned. */
 
-int compute_mixed_volume (int nVar, int nPts, int *SptIdx, int **Spt )
+int compute_mixed_volume (int nVar, int nPts, int *SptIdx, int **Spt,
+			  CellStack *MCells )
 {
    int i,j,p,nS,nSpt,CellSize,MVol,nbCells;
    int *SptType,*VtxIdx,**Vtx,*NuIdx2OldIdx;
    double *lft;
-   CellStack *MCells;
 
    if(quick_return(nVar,SptIdx,Spt) == 1) return -1;
    
@@ -48,22 +48,18 @@ int compute_mixed_volume (int nVar, int nPts, int *SptIdx, int **Spt )
    for(i=0; i<VtxIdx[nSpt]; i++) printf("%2.15lf\n",lft[i]);
 #endif       
    CellSize = cell_size(nSpt,SptType);
-
-   MCells=(CellStack*)calloc(1,sizeof(CellStack));
    Cs_Init(MCells,CellSize);
         
    MixedVol(nVar,nSpt,CellSize,SptType,VtxIdx,Vtx,lft,&nbCells,MCells,&MVol);
 
-#ifdef DEBUG
-   write_cells(fns,output_file,
+   write_cells(10,"cells.out",
                nVar,nSpt,SptType,Vtx,lft,CellSize,nbCells,MCells);
-
+#ifdef DEBUG
    printf("The mixed volume of this support is %d.\n",MVol);
    printf("See the file %s",output_file);
    printf(" for a regular mixed-cell configuration.\n");
 #endif
 
-   while(Cs_IsEmpty(MCells)) Cs_Pop(MCells);   /* clean memory */
 	
    free(VtxIdx);
    for(i=0; i<nPts; i++)
@@ -76,6 +72,11 @@ int compute_mixed_volume (int nVar, int nPts, int *SptIdx, int **Spt )
    free(lft);
        
    return MVol;
+}
+
+void free_cells(CellStack *MCells)
+{
+   while(! Cs_IsEmpty(MCells)) Cs_Pop(MCells);
 }
 
 int quick_return ( int nVar, int *SptIdx, int **Spt )
