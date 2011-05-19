@@ -20,6 +20,7 @@ Adaobjs = [path.join('PHCbuild', 'cy2ada'),
 gnatlink_cmd = 'gnatlink'
 
 # Use the gnatlink command in place of the gcc linker
+# fix this to check if gnatlink is in the path
 if platform == 'darwin':
     gnatlink_cmd= '/usr/local/ada-4.3/bin/gnatlink'
     Adaobjs += ['/Library/Frameworks/Python.framework/Versions/2.7/lib/libpython2.7.dylib']
@@ -29,13 +30,16 @@ environ['LDFLAGS'] = '-C -shared'
 #
 
 src = ['phc.pyx']
-               
+inc = [path.join('PHCsource','Ada','Root_Counts','MixedVol')]
+
 setup(
     name = 'phc',
     version = '1.0',
     description = 'Python interface to PHC',
     author = 'Marc Culler',
     cmdclass = {'build_ext': build_ext},
-    ext_modules = [Extension('phc', sources=src,
+    ext_modules = [Extension('phc',
+                             sources=src,
+                             include_dirs=inc,
                              extra_objects=Adaobjs)]
-)
+    )
