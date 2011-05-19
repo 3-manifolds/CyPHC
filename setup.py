@@ -2,10 +2,16 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
 import os.path as path
-import subprocess
+from subprocess import Popen, PIPE
 from os import environ
 import sys
-from sys import platform
+
+def which(executable):
+    execpath, errs = Popen(['which', executable], stdin=PIPE, stderr=PIPE).communicate()
+    if execpath:
+        return execpath.strip()
+
+gnatlink = which('gnatlink')
 
 Adaobjs = [path.join('PHCbuild', 'cy2ada'),
            path.join('PHCbuild', 'mv_glue.o'),
@@ -17,17 +23,15 @@ Adaobjs = [path.join('PHCbuild', 'cy2ada'),
            path.join('PHCbuild', 'mixed_volume.o'),
            path.join('PHCbuild', 'relation_table.o'),
            path.join('PHCbuild', 'prepare_for_mv.o')]
-gnatlink_cmd = 'gnatlink'
 
-# Use the gnatlink command in place of the gcc linker
-# fix this to check if gnatlink is in the path
-if platform == 'darwin':
-    gnatlink_cmd= '/usr/local/ada-4.3/bin/gnatlink'
+if sys.platform == 'darwin':
+    if not gnatlink:
+        gnatlink= '/usr/local/ada-4.3/bin/gnatlink'
     Adaobjs += ['/Library/Frameworks/Python.framework/Versions/2.7/lib/libpython2.7.dylib']
 
-environ['LDSHARED'] = gnatlink_cmd
+# Use the gnatlink command in place of the gcc linker
+environ['LDSHARED'] = gnatlink
 environ['LDFLAGS'] = '-C -shared'
-#
 
 src = ['phc.pyx']
 inc = [path.join('PHCsource','Ada','Root_Counts','MixedVol')]
