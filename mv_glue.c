@@ -13,27 +13,24 @@
 
 int quick_return ( int nVar, int *SptIdx, int **Spt );
 /*
- * DESCRITION :
+ * DESCRIPTION :
  *   Returns 1 if the system is univariate, or linear, or if some supports
  *   have fewer than two terms in them, printing a message;
  *   otherwise 0 is returned. */
 
-int compute_mixed_volume (int nVar, int nPts, int *SptIdx, int **Spt,
+int compute_mixed_volume (int nVar, int nPts,
+			  int *SptIdx, int *SptType, int **Spt,
+			  int  *VtxIdx, int **Vtx,
+			  int*  NuIdx2OldIdx,
 			  CellStack *MCells )
 {
-   int i,j,p,nS,nSpt,CellSize,MVol,nbCells;
-   int *SptType,*VtxIdx,**Vtx,*NuIdx2OldIdx;
+   int i,j,p,nS,CellSize,MVol,nbCells;
+   int nSpt=nVar;
    double *lft;
 
    if(quick_return(nVar,SptIdx,Spt) == 1) return -1;
    
    /* preprocessing phase */    
-   SptType = (int*)calloc(nVar,sizeof(int));
-   VtxIdx = (int*)calloc(nVar+1,sizeof(int));
-   Vtx = (int**)calloc(nPts,sizeof(int*));
-   for(i=0; i<nPts; i++) Vtx[i] = (int*)calloc(nVar,sizeof(int));
-   NuIdx2OldIdx = (int*)calloc(nPts,sizeof(int));
-   nSpt = nVar;
    Pre4MV(nVar,nSpt,&nS,SptType,Spt,SptIdx,Vtx,VtxIdx,NuIdx2OldIdx);
    nSpt = nS;
    /* end of preprocessing */
@@ -52,25 +49,16 @@ int compute_mixed_volume (int nVar, int nPts, int *SptIdx, int **Spt,
         
    MixedVol(nVar,nSpt,CellSize,SptType,VtxIdx,Vtx,lft,&nbCells,MCells,&MVol);
 
+#ifdef DEBUG
    /*
    write_cells(10,"cells.out",
                   nVar,nSpt,SptType,Vtx,lft,CellSize,nbCells,MCells);
    */
-#ifdef DEBUG
    printf("The mixed volume of this support is %d.\n",MVol);
    printf("See the file %s",output_file);
    printf(" for a regular mixed-cell configuration.\n");
 #endif
 
-	
-   free(VtxIdx);
-   for(i=0; i<nPts; i++)
-   {
-     free(Vtx[i]);
-   }
-   free(Vtx);
-   free(SptType);
-   free(NuIdx2OldIdx);
    free(lft);
        
    return MVol;

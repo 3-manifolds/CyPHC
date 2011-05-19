@@ -7,7 +7,8 @@ from os import environ
 import sys
 
 def which(executable):
-    execpath, errs = Popen(['which', executable], stdin=PIPE, stderr=PIPE).communicate()
+    execpath, errs = Popen(['which', executable],
+                           stdout=PIPE, stderr=PIPE).communicate()
     if execpath:
         return execpath.strip()
 
