@@ -3,7 +3,8 @@ import sys
 from subprocess import Popen, PIPE, call
 
 def which(executable):
-    execpath, errs = Popen(['which', executable], stdin=PIPE, stderr=PIPE).communicate()
+    execpath, errs = Popen(['which', executable],
+                           stdout=PIPE, stderr=PIPE).communicate()
     if execpath:
         return execpath.strip()
 
@@ -18,7 +19,7 @@ if sys.platform == 'darwin':
     if not gnatbind:
         gnatbind = '/usr/local/ada-4.3/bin/gnatbind'
     
-if not gnatmake or not gnatbind:
+if gnatmake is None or gnatbind is None:
     print "gnat is not in your path"
     sys.exit()
 

@@ -29,10 +29,12 @@ cdef extern void poly_coeff(void* poly, int* degrees, double* coeff)
 cdef extern void get_terms(void* poly, int* degrees, double* real, double* imag)
 cdef extern void call_poly(void* poly, double* reX, double* imX, double* Y)
 cdef extern void* specialize_poly(void* p, double* real, double* imag, int v)
-cdef extern int compute_mixed_volume (int nVar, int nPts,
-                                      int* support_indices,
-                                      int** supports,
-                                      CellStack* mixed_cells)
+cdef extern int compute_mixed_volume (
+    int nVar, int nPts,
+    int* support_indices, int* support_types,int** supports,
+    int* vertex_indices,  int** vertices,
+    int *permutation,
+    CellStack* mixed_cells)
 cdef extern void free_cells(CellStack *mixed_cells)
 cdef class PHCContext:
 
@@ -215,18 +217,21 @@ class PHCSystem:
     def mixed_volume(self):
         cdef int nPts, nVar = len(self.ring)
         cdef int i, j, n
-        cdef int *support_indices, *degrees
-        cdef int **supports
+        cdef int *degrees
+        cdef int *support_indices, *support_types, *vertex_indices
+        cdef int **supports, **vertices
         cdef CellStack *mixed_cells
         cdef cell *cell
         
         supplist = [p.terms().keys() for p in self.polys]
+
         support_indices = <int*> malloc( (nVar + 1)*sizeof(int) )
         nPts = 0
         for i in range(len(supplist)):
             support_indices[i] = nPts
             nPts += len(supplist[i])
         support_indices[nVar] = nPts
+
         supports = <int **> malloc( nPts*sizeof(int*) )
         n = 0
         for S in supplist:
@@ -235,12 +240,43 @@ class PHCSystem:
                 for j in range(nVar):
                     supports[n][j] = S[i][j]
                 n += 1
+
+        support_types = <int *>malloc(nVar*sizeof(int))
+
+        #don't ask me why they make the vertex array like this
+        vertex_indices = <int *>malloc( (nVar+1)*sizeof(int) )
+
+        vertices = <int **>malloc( nPts*sizeof(int*) )
+        for i in range(nPts):
+            vertices[i] = <int*>malloc( nVar*sizeof(int) )
+
+        permutation = <int *>malloc( nPts*sizeof(int) );
+
         mixed_cells = <CellStack*> malloc(sizeof(CellStack))
+
         result = compute_mixed_volume(nVar, nPts,
                                       support_indices,
+                                      support_types,
                                       supports,
+                                      vertex_indices,
+                                      vertices,
+                                      permutation,
                                       mixed_cells)
-        
+
+        print 'Support:'
+        for i in range(nPts):
+            print i,
+            point = []
+            for j in range(nVar):
+                point.append(supports[i][j])
+            print point
+        print 'Support Types:'
+        for i in range(nVar):
+            print support_types[i]
+        print 'Permutation:',
+        for i in range(nVar):
+            print permutation[i],
+        print
         print '%s Cells:'%mixed_cells.count
         cell = mixed_cells.top
         while cell != NULL:
@@ -248,8 +284,15 @@ class PHCSystem:
                 print cell.idx[i],
             print
             cell = cell.next
+            
         free_cells(mixed_cells)
         free(mixed_cells)
+        free(permutation)
+        for i in range(nPts):
+            free(vertices[i])
+        free(vertices)
+        free(vertex_indices)
+        free(support_types)
         for i in range(nPts):
             free(supports[i])
         free(supports)
