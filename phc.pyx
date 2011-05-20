@@ -29,9 +29,11 @@ cdef extern void poly_coeff(void* poly, int* degrees, double* coeff)
 cdef extern void get_terms(void* poly, int* degrees, double* real, double* imag)
 cdef extern void call_poly(void* poly, double* reX, double* imX, double* Y)
 cdef extern void* specialize_poly(void* p, double* real, double* imag, int v)
-cdef extern int PHC_mixed_volume_algorithm(int n, int* sizes, int** supports)
-cdef extern void mixed_volume_algorithm (int n, int s, int* indices, int* sizes, int* supports)
-cdef extern void free_cells(CellStack *mixed_cells)
+cdef extern void mixed_volume_algorithm (int n, int m,
+                                         int* indices,
+                                         int* sizes,
+                                         int* supports)
+
 cdef class PHCContext:
 
     def __cinit__(self):
@@ -222,7 +224,7 @@ class PHCSystem:
 
     def MVsolve(self):
         cdef int *supp_array
-        cdef int *size
+        cdef int *sizes
         cdef int *indices
         cdef int i, j, k, p, dim, count
 
@@ -244,100 +246,15 @@ class PHCSystem:
                     supp_array[p] = support[j][k]
                     p += 1
 
-        for i in range(dim):
-            print supports[i]
-        for i in range(dim*count):
-            print supp_array[i],
-            print
-            
+        #for i in range(dim):
+        #    print supports[i]
+        #for i in range(dim*count):
+        #    print supp_array[i],
+        #    print
+
+        mixed_volume_algorithm(dim, count, indices, sizes, supp_array)
         free(supp_array)
-        
-        
-    def C_mixed_volume(self):
-        """
-        Call the C code for the mixed volume computation.
-        """
-        cdef int nPts, nVar = len(self.ring)
-        cdef int i, j, n
-        cdef int *degrees
-        cdef int *support_indices, *support_types, *vertex_indices
-        cdef int **supports, **vertices
-        cdef CellStack *mixed_cells
-        cdef cell *cell
-        
-        supplist = [p.terms().keys() for p in self.polys]
-
-        support_indices = <int*> malloc( (nVar + 1)*sizeof(int) )
-        nPts = 0
-        for i in range(len(supplist)):
-            support_indices[i] = nPts
-            nPts += len(supplist[i])
-        support_indices[nVar] = nPts
-
-        supports = <int **> malloc( nPts*sizeof(int*) )
-        n = 0
-        for S in supplist:
-            for i in range(len(S)):
-                supports[n] = <int *> malloc(nVar*sizeof(int))
-                for j in range(nVar):
-                    supports[n][j] = S[i][j]
-                n += 1
-
-        support_types = <int *>malloc(nVar*sizeof(int))
-
-        #don't ask me why they make the vertex array like this
-        vertex_indices = <int *>malloc( (nVar+1)*sizeof(int) )
-
-        vertices = <int **>malloc( nPts*sizeof(int*) )
-        for i in range(nPts):
-            vertices[i] = <int*>malloc( nVar*sizeof(int) )
-
-        permutation = <int *>malloc( nPts*sizeof(int) );
-
-        mixed_cells = <CellStack*> malloc(sizeof(CellStack))
-
-        result = compute_mixed_volume(nVar, nPts,
-                                      support_indices,
-                                      support_types,
-                                      supports,
-                                      vertex_indices,
-                                      vertices,
-                                      permutation,
-                                      mixed_cells)
-
-        print 'Support:'
-        for i in range(nPts):
-            print i,
-            point = []
-            for j in range(nVar):
-                point.append(supports[i][j])
-            print point
-        print 'Support Types:'
-        for i in range(nVar):
-            print support_types[i]
-        print 'Permutation:',
-        for i in range(nVar):
-            print permutation[i],
-        print
-        print '%s Cells:'%mixed_cells.count
-        cell = mixed_cells.top
-        while cell != NULL:
-            for i in range(mixed_cells.size):
-                print cell.idx[i],
-            print
-            cell = cell.next
-            
-        free_cells(mixed_cells)
-        free(mixed_cells)
-        free(permutation)
-        for i in range(nPts):
-            free(vertices[i])
-        free(vertices)
-        free(vertex_indices)
-        free(support_types)
-        for i in range(nPts):
-            free(supports[i])
-        free(supports)
-        return result
+        free(sizes)
+        free(indices)
 
 phc_context = PHCContext()

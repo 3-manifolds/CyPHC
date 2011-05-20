@@ -14,16 +14,18 @@ def which(executable):
 
 gnatlink = which('gnatlink')
 
-Adaobjs = [path.join('PHCbuild', 'cy2ada'),
-           path.join('PHCbuild', 'mv_glue.o'),
-           path.join('PHCbuild', 'cell_stack.o'),
-           path.join('PHCbuild', 'form_lp.o'),
-           path.join('PHCbuild', 'index_tree_lp.o'),
-           path.join('PHCbuild', 'zero_index_tree.o'),
-           path.join('PHCbuild', 'one_level_lp.o'),
-           path.join('PHCbuild', 'mixed_volume.o'),
-           path.join('PHCbuild', 'relation_table.o'),
-           path.join('PHCbuild', 'prepare_for_mv.o')]
+Adaobjs = [path.join('PHCbuild', 'cy2ada')]
+#           path.join('PHCbuild', 'mv_glue.o'),
+#
+#           path.join('PHCbuild', 'cell_stack.o'),
+#           path.join('PHCbuild', 'form_lp.o'),
+#           path.join('PHCbuild', 'index_tree_lp.o'),
+#           path.join('PHCbuild', 'zero_index_tree.o'),
+#           path.join('PHCbuild', 'one_level_lp.o'),
+#           path.join('PHCbuild', 'mixed_volume.o'),
+#           path.join('PHCbuild', 'relation_table.o'),
+#           path.join('PHCbuild', 'prepare_for_mv.o')
+#           ]
 
 if sys.platform == 'darwin':
     if not gnatlink:
