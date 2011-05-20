@@ -1,24 +1,42 @@
 with Unchecked_Deallocation;
-with Text_Io,Integer_Io;               use Text_Io,Integer_Io;
-with Interfaces.C;                     use Interfaces.C;
-with Interfaces.C.Strings;             use Interfaces.C.Strings;
+with Text_Io,Integer_Io;                 use Text_Io,Integer_Io;
+with Interfaces.C;                       use Interfaces.C;
+with Interfaces.C.Strings;               use Interfaces.C.Strings;
 with Interfaces.C.Pointers;
-with Interfaces.C.Extensions;          use Interfaces.C.Extensions;
-with Symbol_Table;                     use Symbol_Table;
-with Strings_And_Numbers;              use Strings_And_Numbers;
+with Interfaces.C.Extensions;            use Interfaces.C.Extensions;
+with Symbol_Table;                       use Symbol_Table;
+with Strings_And_Numbers;                use Strings_And_Numbers;
 with Generic_Polynomials;
-with Parse_Polynomial_Exceptions;      use Parse_Polynomial_Exceptions;
-with Standard_Floating_Numbers;        use Standard_Floating_Numbers;
-with Standard_Floating_Numbers_Io;     use Standard_Floating_Numbers_Io;
-with Standard_Complex_Numbers;         use Standard_Complex_Numbers;
-with Standard_Complex_Numbers_Io;      use Standard_Complex_Numbers_Io;
 with Standard_Natural_Vectors;
-with Standard_Natural_Vectors_Io;      use Standard_Natural_Vectors_Io;
-with Standard_Complex_Vectors;         use Standard_Complex_Vectors;
-with Standard_Complex_Polynomials;     use Standard_Complex_Polynomials;
-with Standard_Complex_Poly_Functions;  use Standard_Complex_Poly_Functions;
-with Standard_Complex_Polynomials_io;  use Standard_Complex_Polynomials_io;
-with Standard_Complex_Poly_Strings;    use Standard_Complex_Poly_Strings;
+with Standard_Natural_Vectors_Io;        use Standard_Natural_Vectors_Io;
+with Standard_Integer_Vectors;           use Standard_Integer_Vectors;
+with Standard_Floating_Vectors;
+with Standard_Complex_Vectors;           use Standard_Complex_Vectors;
+with Standard_Integer_VecVecs;
+with Standard_Complex_VecVecs;
+with Arrays_of_Integer_Vector_Lists;
+with Arrays_of_Integer_Vector_Lists_io;
+with Arrays_of_Floating_Vector_Lists;
+with Arrays_of_Floating_Vector_Lists_io;
+with Parse_Polynomial_Exceptions;        use Parse_Polynomial_Exceptions;
+with Standard_Floating_Numbers;          use Standard_Floating_Numbers;
+with Standard_Floating_Numbers_Io;       use Standard_Floating_Numbers_Io;
+with Standard_Complex_Numbers;           use Standard_Complex_Numbers;
+with Standard_Complex_Numbers_Io;        use Standard_Complex_Numbers_Io;
+with Standard_Complex_Polynomials;       use Standard_Complex_Polynomials;
+with Standard_Complex_Poly_Functions;    use Standard_Complex_Poly_Functions;
+with Standard_Complex_Polynomials_io;    use Standard_Complex_Polynomials_io;
+with Standard_Complex_Poly_Strings;      use Standard_Complex_Poly_Strings;
+with Standard_Complex_Poly_Systems;      use Standard_Complex_Poly_Systems;
+with Standard_Complex_Poly_Systems_io;   use Standard_Complex_Poly_Systems_io;
+with Floating_Mixed_Subdivisions;        use Floating_Mixed_Subdivisions;
+with Floating_Mixed_Subdivisions_io;     use Floating_Mixed_Subdivisions_io;
+with Standard_Complex_Solutions;         use Standard_Complex_Solutions;
+with Standard_Complex_Solutions_io;      use Standard_Complex_Solutions_io;
+with Standard_System_and_Solutions_io;
+with Floating_Integer_Convertors;
+with Floating_Lifting_Utilities;
+with Cell_Stack;                         use Cell_Stack;
 
 package body Cy2ada is
 
@@ -147,7 +165,8 @@ package body Cy2ada is
       I_Cursor : Double_Ptr := X_Imag;
       Y_Cursor : Double_Ptr := Y;
       Dim      : Integer := Number_Of_Unknowns(P);
-      X        : Vector  := Vector'( 1..Dim => Create(0.0) );
+      X        : Standard_Complex_Vectors.Vector
+               := Standard_Complex_Vectors.Vector'( 1..Dim => Create(0.0) );
       Value    : Complex_Number;
    begin
       for K in 1..Dim loop
@@ -175,7 +194,6 @@ package body Cy2ada is
       return Result;
    end Specialize_Poly;
 
-
    function Poly_To_String ( P : in Poly ) return Chars_Ptr is
       -- Return a C string containing the canonical representation of a PHC Poly.
       Poly_String : constant String := Write(P);
@@ -190,5 +208,93 @@ package body Cy2ada is
       Free(S);
    end Free_String;
 
+   procedure Mixed_Volume_Algorithm
+     (
+      N        : in  Natural; -- number of variables = number of polys
+      S        : in  Natural; -- total size of support
+      Indices  : in  Int_Ptr;
+      Sizes    : in  Int_Ptr;
+      Supports : in  Int_Ptr
+     ) is
+      Index_Ptr : Int_Ptr := Indices;
+      Size_Ptr  : Int_Ptr := Sizes;
+      Supp_Ptr  : Int_Ptr := Supports;
+      R         : Natural;
+      Mix,Perm  : Standard_Integer_Vectors.Link_to_Vector;
+      Ind       : Standard_Integer_Vectors.Vector(1..N);
+      Cnt       : Standard_Integer_Vectors.Vector(1..N);
+      Supp      : Standard_Integer_Vectors.Vector(1..N*S);
+      Sub       : Mixed_Subdivision;
+      Mixvol    : Natural;
+      Q         : Link_To_Poly_Sys := new Poly_Sys(1..N);
+      Qsols     : Solution_List;
+   begin
+      for I in 1..N loop
+         Ind(I) := Integer(Index_Ptr.all);
+         Cnt(I) := Integer(Size_Ptr.all);
+         Increment(Index_Ptr);
+         Increment(Size_Ptr);
+      end loop;
+      for I in 1..N*S loop
+         Supp(I) := Integer(Supp_Ptr.all);
+         Increment(Supp_Ptr);
+      end loop;
+      Compute_Mixed_Volume(N, S, Ind,  Cnt, Supp, 0.0,
+                           R, Mix, Perm, Sub, MixVol);
+      declare
+         FS : Arrays_of_Floating_Vector_Lists.Array_of_Lists(Supp'range)
+           := Floating_Integer_Convertors.Convert(Supp);
+         LS : Arrays_of_Floating_Vector_Lists.Array_of_Lists(Mix'range)
+           := Floating_Lifting_Utilities.Occurred_Lifting(N, Mix, FS, Sub);
+      begin
+         --Put("Solving .."); New_Line;
+         Random_Coefficient_System(N, Mix, LS, Sub, Q.all, Qsols);
+         --Put(Q); New_Line;
+         --Put(Qsols); New_Line;
+      end;
+   end Mixed_Volume_Algorithm;
+
+   procedure Compute_Mixed_Volume
+     (
+      N        : in  Natural; -- number of variables = number of polys
+      S        : in  Natural; -- total size of support
+      Cnt      : in  Standard_Integer_Vectors.Vector;
+      Ind      : in  Standard_Integer_Vectors.Vector;
+      Sup      : in  Standard_Integer_Vectors.Vector;
+      Stlb     : in  double_float;
+      R        : out natural;
+      Mix,Perm : out Standard_Integer_Vectors.Link_to_Vector;
+      Sub      : out Mixed_Subdivision;
+      Mixvol   : out natural ) is
+
+      M,Size,Nb     : natural;
+      Mtype,Idx     : Standard_Integer_Vectors.Link_to_Vector;
+      Vtx           : Standard_Integer_VecVecs.Link_to_VecVec;
+      Lift          : Standard_Floating_Vectors.Link_to_Vector;
+      Cells         : CellStack;
+      Ind_Ptr       : Int_Ptr := Indices;
+      Cnt_Ptr       : Int_Ptr := Sizes;
+      Sup_Ptr       : Int_Ptr := Sup;
+      Q             : Poly_Sys;
+      Qsols         : Solution_List;
+
+   begin
+      mv(N, M, Ind, Cnt, Sup, Stlb,
+         R, Mtype, Perm, Idx, Vtx, Lift, Size, Nb, Cells, Mixvol);
+       --put("The mixed volume is "); put(mixvol, 1); put_line(".");
+       --put("There are "); put(nb, 1); put_line(" mixed cells.");
+       --put("Permutation of the supports : "); put(perm); new_line;
+       --put_line("Creating a regular mixed-cell configuration ...");
+      if R < N
+      then Create_Mixed_Cell_Configuration
+        (N, R, Size, Nb, Mtype, Vtx, Lift, Cells, Sub );
+      else Create_Mixed_Cell_Configuration
+        (N, R, Size, Nb, Mtype, Perm, Vtx, Lift, Cells, Sub );
+      end if;
+      Mix := new Standard_Integer_Vectors.Vector(1..R );
+      for I in 1..R  loop
+         Mix(I ) := Mtype(I-1);
+      end loop;
+   end Compute_Mixed_Volume;
 
 end Cy2ada;
