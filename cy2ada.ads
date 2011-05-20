@@ -8,6 +8,7 @@ with Standard_Complex_Vectors;
 with Standard_Complex_Polynomials;     use Standard_Complex_Polynomials;
 with Generic_Polynomials;
 with Generic_Polynomial_Systems;
+with Standard_Complex_Poly_Systems;    use Standard_Complex_Poly_Systems;
 with Symbol_Table;
 with Floating_Mixed_Subdivisions;      use Floating_Mixed_Subdivisions;
 
@@ -100,5 +101,8 @@ package Cy2ada is
       Mix,Perm : out Standard_Integer_Vectors.Link_to_Vector;
       Sub      : out Mixed_Subdivision;
       Mixvol   : out natural );
+
+   function Poly_Sys_Get(Sys : in Poly_Sys; Index : in Natural ) return Poly;
+   pragma Export ( C, Poly_Sys_Get, "poly_sys_get" );
 
 end Cy2ada;

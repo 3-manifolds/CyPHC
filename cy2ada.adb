@@ -210,6 +210,16 @@ package body Cy2ada is
       Free(S);
    end Free_String;
 
+   function Poly_Sys_Get (Sys : in Poly_Sys; Index : in Natural )
+                         return Poly is
+   begin
+      if Index > Sys'Last then
+         return Null_Poly;
+      else
+         return Sys(Index);
+      end if;
+   end Poly_Sys_Get;
+
    procedure Mixed_Volume_Algorithm
      (
       N        : in  Natural; -- number of variables = number of polys
