@@ -29,7 +29,7 @@ cdef extern void poly_coeff(void* poly, int* degrees, double* coeff)
 cdef extern void get_terms(void* poly, int* degrees, double* real, double* imag)
 cdef extern void call_poly(void* poly, double* reX, double* imX, double* Y)
 cdef extern void* specialize_poly(void* p, double* real, double* imag, int v)
-cdef extern void mixed_volume_algorithm (int n, int m,
+cdef extern void* mixed_volume_algorithm (int n, int m,
                                          int* indices,
                                          int* sizes,
                                          int* supports)
