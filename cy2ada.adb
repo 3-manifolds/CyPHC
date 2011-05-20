@@ -14,6 +14,7 @@ with Generic_Polynomials;
 with Standard_Natural_Vectors;
 with Standard_Natural_Vectors_Io;        use Standard_Natural_Vectors_Io;
 with Standard_Integer_Vectors;           use Standard_Integer_Vectors;
+with Standard_Integer_Vectors_Io;        use Standard_Integer_Vectors_Io;
 with Standard_Floating_Vectors;
 with Standard_Complex_Vectors;           use Standard_Complex_Vectors;
 with Standard_Integer_VecVecs;
@@ -244,15 +245,13 @@ package body Cy2ada is
       Compute_Mixed_Volume(N, M, Ind,  Cnt, Supp, 0.0,
                            R, Mix, Perm, Sub, MixVol);
       declare
-         FS : Arrays_of_Floating_Vector_Lists.Array_of_Lists(Supp'range);
---           := Floating_Integer_Convertors.Convert(Supp);
          LS : Arrays_of_Floating_Vector_Lists.Array_of_Lists(Mix'range)
-           := Floating_Lifting_Utilities.Occurred_Lifting(N, Mix.all, FS, Sub);
+            := Floating_Lifting_Utilities.Lifted_Supports(mix'last,sub);
       begin
-         Put("Solving .."); New_Line;
+         Put("Solving the random system:"); New_Line;
          Random_Coefficient_System(N, Mix.all, LS, Sub, Q.all, Qsols);
-         --Put(Q); New_Line;
-         --Put(Qsols); New_Line;
+         Put(Q.all); New_Line;
+         Put(Qsols); New_Line;
       end;
    end Mixed_Volume_Algorithm;
 
@@ -279,42 +278,31 @@ package body Cy2ada is
       Put("Number of variables: "); Put(N,1); New_Line;
       Put("Size of support: "); Put(M,1); New_Line;
       Put("Indices: ");
-      for I in 1..N loop
-         Put(Ind(I),1); Put(", ");
-      end loop;
-      New_Line;
+      Standard_Integer_Vectors_IO.Put(Ind); New_Line;
       Put("Counts: ");
-      for I in 1..N loop
-         Put(Cnt(I),1); Put(", ");
-      end loop;
-      New_Line;
+      Standard_Integer_Vectors_IO.Put(Cnt); New_Line;
       Put("Support: ");
-      for I in 1..N*M loop
-         Put(Supp(I),1); Put(", ");
-      end loop;
-      New_Line;
+      Standard_Integer_Vectors_IO.Put(Supp); New_Line;
 
       mv(N, M, Ind, Cnt, Supp, Stlb,
          R, Mtype, Perm, Idx, Vtx, Lift, Size, Nb, Cells, Mixvol);
       Put("The mixed volume is "); Put(mixvol, 1); Put_Line(".");
       Put("There are "); Put(nb, 1); Put_Line(" mixed cells.");
-      Put("Permutation: ");
-      for I in 1..N loop
-         Put(Perm.all(I),1); Put(", ");
-      end loop;
-      New_Line;
-      --put("Permutation of the supports : "); put(perm); new_line;
       put_line("Creating a regular mixed-cell configuration ...");
       Put("R = "); Put(R,1); New_Line;
       if R < N
       then
+         Put("Using the permutation: ");
+         for I in 1..N loop
+            Put(Perm.all(I),1); Put(", ");
+         end loop;
+         New_Line;
+         Create_Mixed_Cell_Configuration
+        (N, R, Size, Nb, Mtype, Perm, Vtx, Lift, Cells, Sub );
+      else
          Put("Not using the  permutation.");New_Line;
          Create_Mixed_Cell_Configuration
         (N, R, Size, Nb, Mtype, Vtx, Lift, Cells, Sub );
-      else
-         Put("Using the permutation."); New_Line;
-         Create_Mixed_Cell_Configuration
-        (N, R, Size, Nb, Mtype, Perm, Vtx, Lift, Cells, Sub );
       end if;
       Mix := new Standard_Integer_Vectors.Vector( 1..R );
       Put("Mix: ");
