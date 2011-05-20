@@ -220,14 +220,14 @@ package body Cy2ada is
       end if;
    end Poly_Sys_Get;
 
-   procedure Mixed_Volume_Algorithm
+   function Mixed_Volume_Algorithm
      (
       N        : in  Natural; -- number of variables = number of polys
       M        : in  Natural; -- total size of support
       Indices  : in  Int_Ptr;
       Sizes    : in  Int_Ptr;
       Supports : in  Int_Ptr
-     ) is
+     ) return Poly_Sys is
       Index_Ptr : Int_Ptr := Indices;
       Size_Ptr  : Int_Ptr := Sizes;
       Supp_Ptr  : Int_Ptr := Supports;
@@ -263,6 +263,7 @@ package body Cy2ada is
          Put(Q.all); New_Line;
          Put(Qsols); New_Line;
       end;
+      return Q.all;
    end Mixed_Volume_Algorithm;
 
    procedure Compute_Mixed_Volume

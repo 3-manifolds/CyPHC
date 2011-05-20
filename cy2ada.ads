@@ -81,12 +81,12 @@ package Cy2ada is
        N      : in Integer) return Poly;
    pragma Export ( C, Specialize_Poly, "specialize_poly" );
 
-   procedure Mixed_Volume_Algorithm
+   function Mixed_Volume_Algorithm
      ( N        : in  Natural; -- number of variables = number of polys
        M        : in  Natural; -- total size of support
        Indices  : in  Int_Ptr;
        Sizes    : in  Int_Ptr;
-       Supports : in  Int_Ptr );
+       Supports : in  Int_Ptr ) return Poly_Sys;
    pragma Export ( C, Mixed_Volume_Algorithm, "mixed_volume_algorithm" );
 
    procedure Compute_Mixed_Volume
