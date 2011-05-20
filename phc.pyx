@@ -29,13 +29,8 @@ cdef extern void poly_coeff(void* poly, int* degrees, double* coeff)
 cdef extern void get_terms(void* poly, int* degrees, double* real, double* imag)
 cdef extern void call_poly(void* poly, double* reX, double* imX, double* Y)
 cdef extern void* specialize_poly(void* p, double* real, double* imag, int v)
-cdef extern int PHC_mixed_volume_algorithm(int n, int* sizes, int **supports)
-cdef extern int compute_mixed_volume (
-    int nVar, int nPts,
-    int* support_indices, int* support_types,int** supports,
-    int* vertex_indices,  int** vertices,
-    int *permutation,
-    CellStack* mixed_cells)
+cdef extern int PHC_mixed_volume_algorithm(int n, int* sizes, int** supports)
+cdef extern void mixed_volume_algorithm (int n, int s, int* indices, int* sizes, int* supports)
 cdef extern void free_cells(CellStack *mixed_cells)
 cdef class PHCContext:
 
@@ -223,36 +218,38 @@ class PHCSystem:
         return len(self.polys)
 
     def supports(self):
-        return [p.terms().keys() for p in self]
+        return [sorted(p.terms().keys()) for p in self]
 
     def MVsolve(self):
-        cdef int **supp_array
+        cdef int *supp_array
         cdef int *size
-        cdef int i, j, k, p, dim
+        cdef int *indices
+        cdef int i, j, k, p, dim, count
 
         dim = len(self)
-        size = <int *> malloc( len(self)*sizeof(int) )
-        supp_array = <int **> malloc( len(self)*sizeof(int*) )
+        sizes = <int *> malloc( len(self)*sizeof(int) )
+        indices = <int *> malloc( len(self)*sizeof(int) )
         supports = self.supports()
+        count = 0
         for i in range(dim):
-            size[i] = len(supports[i])
-            supp_array[i] = <int *> malloc( dim*size[i]*sizeof(int) )        
+            indices[i] = count
+            sizes[i] = len(supports[i])
+            count += sizes[i]
+        supp_array = <int *> malloc( count*dim*sizeof(int) )
+        p = 0
         for i in range(dim):
-            p = 0
             support = supports[i]
-            for j in range(size[i]):
+            for j in range(sizes[i]):
                 for k in range(dim):
-                    supp_array[i][p] = support[j][k]
+                    supp_array[p] = support[j][k]
                     p += 1
 
         for i in range(dim):
             print supports[i]
-            for j in range(dim*size[i]):
-                print supp_array[i][j],
+        for i in range(dim*count):
+            print supp_array[i],
             print
             
-        for i in range(len(self)):
-            free(supp_array[i])
         free(supp_array)
         
         

@@ -2,8 +2,11 @@ with Interfaces.C;                     use Interfaces.C;
 with Interfaces.C.Extensions;          use Interfaces.C.Extensions;
 with Interfaces.C.Strings;             use Interfaces.C.Strings;
 with Interfaces.C.Pointers;
+with Standard_Integer_Vectors;
+with Standard_Complex_Vectors;
 with Standard_Complex_Polynomials;     use Standard_Complex_Polynomials;
 with Generic_Polynomials;
+with Generic_Polynomial_Systems;
 with Symbol_Table;
 
 package Cy2ada is
@@ -48,28 +51,53 @@ package Cy2ada is
    function Num_Terms ( P : in Poly ) return Natural;
    pragma Export ( C, Num_Terms, "num_terms" );
 
-   procedure Poly_Coeff( P    : in Poly;
-                         Degs : in Int_Ptr;
-                         Res  : in Double_Ptr);
+   procedure Poly_Coeff
+     ( P    : in Poly;
+       Degs : in Int_Ptr;
+       Res  : in Double_Ptr);
    pragma Export ( C, Poly_Coeff, "poly_coeff" );
 
-   procedure Call_Poly( P      : in Poly;
-                        X_Real : in Double_Ptr;
-                        X_Imag : in Double_Ptr;
-                        Y      : in Double_Ptr);
+   procedure Call_Poly
+     ( P      : in Poly;
+       X_Real : in Double_Ptr;
+       X_Imag : in Double_Ptr;
+       Y      : in Double_Ptr);
    pragma Export ( C, Call_Poly , "call_poly" );
 
-   procedure Get_Terms ( P : in Poly;
-                         Degs : in Int_Ptr;
-                         Reals : in Double_Ptr;
-                         Imags : in Double_Ptr);
+   procedure Get_Terms
+     ( P     : in Poly;
+       Degs  : in Int_Ptr;
+       Reals : in Double_Ptr;
+       Imags : in Double_Ptr );
    pragma Export ( C, Get_Terms, "get_terms" );
 
-   function Specialize_Poly (P      : in Poly;
-                             X_Real : in Double_Ptr;
-                             X_Imag : in Double_Ptr;
-                             N      : in Integer) return Poly;
+   function Specialize_Poly
+     ( P      : in Poly;
+       X_Real : in Double_Ptr;
+       X_Imag : in Double_Ptr;
+       N      : in Integer) return Poly;
    pragma Export ( C, Specialize_Poly, "specialize_poly" );
 
+   procedure Mixed_Volume_Algorithm
+     ( N        : in  Natural; -- number of variables = number of polys
+       S        : in  Natural; -- total size of support
+       Indices  : in  Int_Ptr;
+       Sizes    : in  Int_Ptr;
+       Supports : in  Int_Ptr );
+   pragma Export ( C, Mixed_Volume_Algorithm, "mixed_volume_algorithm" );
+
+   procedure Compute_Mixed_Volume
+     (
+      N        : in  Natural; -- number of variables = number of polys
+      S        : in  Natural; -- total size of support
+      Cnt      : in  Standard_Integer_Vectors.Vector;
+      Ind      : in  Standard_Integer_Vectors.Vector;
+      Sup      : in  Standard_Integer_Vectors.Vector;
+      Stlb     : in  double_float; -- set to 0.0 if stable solutions are not needed
+      R        : out natural;
+      Mix,Perm : out Standard_Integer_Vectors.Link_to_Vector;
+      Sub      : out Mixed_Subdivision;
+      Mixvol   : out natural );
+   pragma Export ( C, Compute_Mixed_Volume, "compute_mixed_volume" );
 
 end Cy2ada;
