@@ -16,7 +16,7 @@ BIN=$(PHCRoot)/bin
 INCLULIBS=-I$(PHCAda)/System -I$(PHCAda)/System/Unix_Timer \
  -I$(PHCAda)/Math_Lib/Numbers -I$(PHCAda)/Math_Lib/Vectors \
  -I$(PHCAda)/Math_Lib/Matrices -I$(PHCAda)/Math_Lib/Polynomials \
- -I$(PHCAda)/Math_Lib/Supports \
+ -I$(PHCAda)/Math_Lib/Supports -I$(PHCAda)/Math_Lib/QD \
  -I$(PHCAda)/Homotopy -I$(PHCAda)/Newton -I$(PHCAda)/Continuation \
  -I$(PHCAda)/Root_Counts/Product -I$(PHCAda)/Root_Counts/Simpomials \
  -I$(PHCAda)/Root_Counts/Implift -I$(PHCAda)/Root_Counts/Stalift \
@@ -40,7 +40,8 @@ MVOBJ=$(MVRoot)/cell_stack.o $(MVRoot)/form_lp.o $(MVRoot)/index_tree_lp.o \
  $(MVRoot)/zero_index_tree.o $(MVRoot)/one_level_lp.o $(MVRoot)/mixed_volume.o \
  $(MVRoot)/relation_table.o $(MVRoot)/prepare_for_mv.o
 
-phc.so: b_cy2ada.c phc.pyx mv_glue.o
+#phc.so: b_cy2ada.c phc.pyx mv_glue.o
+phc.so: b_cy2ada.c phc.pyx
 	python setup.py build_ext --inplace
 
 b_cy2ada.c: PHCbuild
@@ -52,7 +53,7 @@ PHCbuild:
 	mkdir PHCbuild
 
 mv_glue.o: PHCbuild mv_glue.c
-	cd PHCbuild; gcc -c $(GCCFLAGS) -I$(MVRoot) $(MVSRC) ../mv_glue.c
+	cd PHCbuild; gcc -c $(GCCFLAGS) -I$(MVRoot) ../mv_glue.c 
 
 clean :
 	-rm -rf PHCbuild build phc.c phc.so b_cy2ada.c

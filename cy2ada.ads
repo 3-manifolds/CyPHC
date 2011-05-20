@@ -2,12 +2,14 @@ with Interfaces.C;                     use Interfaces.C;
 with Interfaces.C.Extensions;          use Interfaces.C.Extensions;
 with Interfaces.C.Strings;             use Interfaces.C.Strings;
 with Interfaces.C.Pointers;
+with Standard_Floating_Numbers;        use Standard_Floating_Numbers;
 with Standard_Integer_Vectors;
 with Standard_Complex_Vectors;
 with Standard_Complex_Polynomials;     use Standard_Complex_Polynomials;
 with Generic_Polynomials;
 with Generic_Polynomial_Systems;
 with Symbol_Table;
+with Floating_Mixed_Subdivisions;      use Floating_Mixed_Subdivisions;
 
 package Cy2ada is
    type Int_Array is array ( Integer range <>) of aliased int;
@@ -80,7 +82,7 @@ package Cy2ada is
 
    procedure Mixed_Volume_Algorithm
      ( N        : in  Natural; -- number of variables = number of polys
-       S        : in  Natural; -- total size of support
+       M        : in  Natural; -- total size of support
        Indices  : in  Int_Ptr;
        Sizes    : in  Int_Ptr;
        Supports : in  Int_Ptr );
@@ -89,15 +91,14 @@ package Cy2ada is
    procedure Compute_Mixed_Volume
      (
       N        : in  Natural; -- number of variables = number of polys
-      S        : in  Natural; -- total size of support
-      Cnt      : in  Standard_Integer_Vectors.Vector;
+      M        : in  Natural; -- total size of support
       Ind      : in  Standard_Integer_Vectors.Vector;
-      Sup      : in  Standard_Integer_Vectors.Vector;
-      Stlb     : in  double_float; -- set to 0.0 if stable solutions are not needed
+      Cnt      : in  Standard_Integer_Vectors.Vector;
+      Supp     : in  Standard_Integer_Vectors.Vector;
+      Stlb     : in  double_float;
       R        : out natural;
       Mix,Perm : out Standard_Integer_Vectors.Link_to_Vector;
       Sub      : out Mixed_Subdivision;
       Mixvol   : out natural );
-   pragma Export ( C, Compute_Mixed_Volume, "compute_mixed_volume" );
 
 end Cy2ada;
