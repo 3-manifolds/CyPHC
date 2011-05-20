@@ -29,6 +29,7 @@ cdef extern void poly_coeff(void* poly, int* degrees, double* coeff)
 cdef extern void get_terms(void* poly, int* degrees, double* real, double* imag)
 cdef extern void call_poly(void* poly, double* reX, double* imX, double* Y)
 cdef extern void* specialize_poly(void* p, double* real, double* imag, int v)
+cdef extern int PHC_mixed_volume_algorithm(int n, int* sizes, int **supports)
 cdef extern int compute_mixed_volume (
     int nVar, int nPts,
     int* support_indices, int* support_types,int** supports,
@@ -211,10 +212,54 @@ class PHCSystem:
                 raise ValueError, "The PHCPoly's must share the System's ring."
 
     def __repr__(self):
-        return '\n'.join(['System over %s:'%str(self.ring)] +
-                         ['%6s'%('%d: %s'%(n,p)) for n, p in enumerate(self.polys)])
+        return '\n'.join(
+            ['System over %s:'%str(self.ring)] +
+            ['%6s'%('%d: %s'%(n,p)) for n, p in enumerate(self.polys)])
 
-    def mixed_volume(self):
+    def __getitem__(self, index):
+        return self.polys[index]
+    
+    def __len__(self):
+        return len(self.polys)
+
+    def supports(self):
+        return [p.terms().keys() for p in self]
+
+    def MVsolve(self):
+        cdef int **supp_array
+        cdef int *size
+        cdef int i, j, k, p, dim
+
+        dim = len(self)
+        size = <int *> malloc( len(self)*sizeof(int) )
+        supp_array = <int **> malloc( len(self)*sizeof(int*) )
+        supports = self.supports()
+        for i in range(dim):
+            size[i] = len(supports[i])
+            supp_array[i] = <int *> malloc( dim*size[i]*sizeof(int) )        
+        for i in range(dim):
+            p = 0
+            support = supports[i]
+            for j in range(size[i]):
+                for k in range(dim):
+                    supp_array[i][p] = support[j][k]
+                    p += 1
+
+        for i in range(dim):
+            print supports[i]
+            for j in range(dim*size[i]):
+                print supp_array[i][j],
+            print
+            
+        for i in range(len(self)):
+            free(supp_array[i])
+        free(supp_array)
+        
+        
+    def C_mixed_volume(self):
+        """
+        Call the C code for the mixed volume computation.
+        """
         cdef int nPts, nVar = len(self.ring)
         cdef int i, j, n
         cdef int *degrees
@@ -236,7 +281,7 @@ class PHCSystem:
         n = 0
         for S in supplist:
             for i in range(len(S)):
-                supports[n] = <int *> malloc(nVar*sizeof(int));
+                supports[n] = <int *> malloc(nVar*sizeof(int))
                 for j in range(nVar):
                     supports[n][j] = S[i][j]
                 n += 1
