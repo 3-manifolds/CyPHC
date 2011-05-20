@@ -33,7 +33,8 @@ cdef extern void mixed_volume_algorithm (int n, int m,
                                          int* indices,
                                          int* sizes,
                                          int* supports)
-
+cdef extern void* poly_sys_get(void* poly_sys, int n)
+    
 cdef class PHCContext:
 
     def __cinit__(self):
@@ -201,6 +202,7 @@ class PHCSystem:
     A system of polynomials equations, all in the same ring and having
     rhs=0.  Instantiate with a ring and a sequence of PHCPoly's.
     """
+    
     def __init__(self, ring, polys):
         self.ring = ring
         self.polys = tuple(polys)
