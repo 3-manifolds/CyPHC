@@ -29,12 +29,18 @@ cdef extern void poly_coeff(void* poly, int* degrees, double* coeff)
 cdef extern void get_terms(void* poly, int* degrees, double* real, double* imag)
 cdef extern void call_poly(void* poly, double* reX, double* imX, double* Y)
 cdef extern void* specialize_poly(void* p, double* real, double* imag, int v)
-cdef extern void mixed_volume_algorithm (int n, int m,
+cdef extern void* mixed_volume_algorithm (int n, int m,
                                          int* indices,
                                          int* sizes,
                                          int* supports)
-cdef extern void* poly_sys_get(void* poly_sys, int n)
-    
+cdef extern void* new_solved_system(int n)
+cdef extern void* get_poly(void* solved, int n)
+cdef extern void set_poly(void* solved, int n, void* p)
+cdef extern int get_num_solns (void* solved)
+cdef extern void get_solution(void *solved, int n,
+                              int* mult, double* info, double* real, double*imag)
+cdef extern void do_homotopy(void *start, void *target)
+
 cdef class PHCContext:
 
     def __cinit__(self):
@@ -134,7 +140,10 @@ cdef class PHCPoly:
         
     cdef replace_poly(self, void *p):
         self.poly = p
-        
+
+    cdef void* get_pointer(self):
+        return self.poly
+
     def num_unknowns(self):
         """
         Return the number of unknowns in this PHC Poly.
@@ -196,12 +205,14 @@ cdef class PHCPoly:
         print result
         result.replace_poly(new_poly)
         return result
-
-class PHCSystem:
+                   
+cdef class PHCSystem:
     """
     A system of polynomials equations, all in the same ring and having
     rhs=0.  Instantiate with a ring and a sequence of PHCPoly's.
     """
+    cdef ring, polys, start_system, start_solutions, solutions
+    cdef void *solved_starter, *solved_target
     
     def __init__(self, ring, polys):
         self.ring = ring
@@ -209,6 +220,12 @@ class PHCSystem:
         for p in polys:
             if ring != p.get_ring():
                 raise ValueError, "The PHCPoly's must share the System's ring."
+        self.solved_starter = NULL
+        self.solved_target = NULL
+
+    def __dealloc__(self):
+        # free memory associated with solved_starter and solved_target
+        pass
 
     def __repr__(self):
         return '\n'.join(
@@ -224,12 +241,9 @@ class PHCSystem:
     def supports(self):
         return [sorted(p.terms().keys()) for p in self]
 
-    def MVsolve(self):
-        cdef int *supp_array
-        cdef int *sizes
-        cdef int *indices
+    cdef build_starter(self):
+        cdef int *supp_array, *sizes, *indices
         cdef int i, j, k, p, dim, count
-
         dim = len(self)
         sizes = <int *> malloc( len(self)*sizeof(int) )
         indices = <int *> malloc( len(self)*sizeof(int) )
@@ -248,15 +262,74 @@ class PHCSystem:
                     supp_array[p] = support[j][k]
                     p += 1
 
-        #for i in range(dim):
-        #    print supports[i]
-        #for i in range(dim*count):
-        #    print supp_array[i],
-        #    print
-
-        mixed_volume_algorithm(dim, count, indices, sizes, supp_array)
+        self.solved_starter = mixed_volume_algorithm(dim, count, indices,
+                                             sizes, supp_array)
+        poly_list = []
+        for i in range(dim):
+            P = PHCPoly(self.ring, '')
+            PHCPoly.replace_poly(P, get_poly(self.solved_starter, 1+i) )
+            poly_list.append(P)
+        num_solns = get_num_solns(self.solved_starter)
+        real = <double*>malloc( (1+dim)*sizeof(double) )
+        imag = <double*>malloc( (1+dim)*sizeof(double) )
+        self.start_solutions = self.extract_solns(self.solved_starter)
+        self.start_system = PHCSystem(self.ring, poly_list)
+        free(imag)
+        free(real)
         free(supp_array)
         free(sizes)
         free(indices)
 
+    cdef extract_solns(self, void* solved_system):
+        cdef int num_solns, i, mult, dim=len(self)
+        cdef double *real, *imag, info[3]
+        num_solns = get_num_solns(solved_system)
+        real = <double*>malloc( (1+dim)*sizeof(double) )
+        imag = <double*>malloc( (1+dim)*sizeof(double) )
+        solns = []
+        for i in range(num_solns):
+            get_solution(solved_system, i, &mult, info, real, imag)
+            err, rco, res = info[0], info[1], info[2]
+            param = complex(real[0], imag[0])
+            point = [complex(real[j],imag[j]) for j in range(1, 1+dim)]
+            solns.append(PHCSolution(param, mult, point, err, rco, res))
+        free(imag)
+        free(real)
+        return solns
+        
+    cdef MVsolve(self):
+        self.solved_target = new_solved_system(len(self))
+        for n, P in enumerate(self):
+            set_poly(self.solved_target, n+1, PHCPoly.get_pointer(P))
+        do_homotopy(self.solved_starter, self.solved_target)
+        self.solutions = self.extract_solns(self.solved_target)
+
+    def MVstart(self):
+        if self.solved_starter == NULL:
+            self.build_starter()
+        return self.start_system, self.start_solutions
+
+    def solution_list(self):
+        if self.solved_target == NULL:
+            self.MVsolve()
+        return self.solutions
+        
+class PHCSolution:
+    def __init__(self, param=None, mult=None, point=[],
+                 err=None, rco=None, res=None):
+        self.param, self.mult, self.point = param, mult, point
+        self.err, self.rco, self.res = err, rco, res
+
+    def __repr__(self):
+        return '\n'+'\n'.join(
+            ['========'] +
+            ['t=%s; err=%s; rco=%s; res=%s'%(
+                self.param, self.err, self.rco, self.res)] +
+            [str(z) for z in self.point] +
+            ['========'])
+                          
+                          
+    
+
+                 
 phc_context = PHCContext()

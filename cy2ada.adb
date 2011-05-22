@@ -10,6 +10,7 @@ with Standard_Floating_Numbers;          use Standard_Floating_Numbers;
 with Standard_Floating_Numbers_Io;       use Standard_Floating_Numbers_Io;
 with Standard_Complex_Numbers;           use Standard_Complex_Numbers;
 with Standard_Complex_Numbers_Io;        use Standard_Complex_Numbers_Io;
+with Standard_Random_Numbers;            use Standard_Random_Numbers;
 with Generic_Polynomials;
 with Standard_Natural_Vectors;
 with Standard_Natural_Vectors_Io;        use Standard_Natural_Vectors_Io;
@@ -19,6 +20,7 @@ with Standard_Floating_Vectors;
 with Standard_Complex_Vectors;           use Standard_Complex_Vectors;
 with Standard_Integer_VecVecs;
 with Standard_Complex_VecVecs;
+with Standard_Complex_Norms_Equals;      use Standard_Complex_Norms_Equals;
 with Arrays_of_Integer_Vector_Lists;
 with Arrays_of_Integer_Vector_Lists_io;
 with Arrays_of_Floating_Vector_Lists;
@@ -40,6 +42,11 @@ with Floating_Lifting_Utilities;
 with Cell_Stack;                         use Cell_Stack;
 with Mixedvol_Algorithm;                 use Mixedvol_Algorithm;
 with Drivers_For_Mixedvol_Algorithm;     use Drivers_For_Mixedvol_Algorithm;
+with Increment_and_Fix_Continuation;     use Increment_and_Fix_Continuation;
+with Standard_Homotopy;                  use Standard_Homotopy;
+-- with Drivers_For_Poly_Continuation;
+-- with Drivers_For_Homotopy_Creation;
+
 package body Cy2ada is
 
    procedure Reset_Symbols( Max : in Integer ) is
@@ -210,24 +217,73 @@ package body Cy2ada is
       Free(S);
    end Free_String;
 
-   function Poly_Sys_Get (Sys : in Poly_Sys; Index : in Natural )
-                         return Poly is
+   function New_Solved_System (N : in Natural) return Link_To_Solved_System is
+      Result : Link_To_Solved_System;
    begin
-      if Index > Sys'Last then
-         return Null_Poly;
-      else
-         return Sys(Index);
-      end if;
-   end Poly_Sys_Get;
+      Result := new Solved_System;
+      Result.all.Num_Solns := 0;
+      Result.all.System := new Poly_Sys(1..N);
+      return Result;
+   end New_Solved_System;
 
-   procedure Mixed_Volume_Algorithm
+   function Get_Poly ( Sys : in Link_To_Solved_System;
+                       Index : in Natural )
+                     return Poly is
+      PS : Solved_System := Sys.all;
+   begin
+      return PS.System(Index);
+   end Get_Poly;
+
+   procedure Set_Poly( Sys   : in Link_To_Solved_System;
+                       Index : in Integer;
+                       P     : in Poly ) is
+      PS : Solved_System := Sys.all;
+   begin
+      PS.System(Index) := P;
+   end Set_Poly;
+
+   function Get_Num_Solns (Sys : in Link_To_Solved_System) return Int is
+   begin
+      return Int(Sys.all.Num_Solns);
+   end Get_Num_Solns;
+
+   procedure Get_Solution ( Sys : in Link_To_Solved_System;
+                            Index : in Natural;
+                            Mult : in Int_Ptr;
+                            Info : in Double_Ptr;
+                            Real : in Double_Ptr;
+                            Imag : in Double_Ptr ) is
+      Solns    : Solution_Array := Create(Sys.all.Solutions); -- List -> Array
+      S        : Solution := Solns(1+Index).all; -- starts at 0 on python side
+      M        : Int_Ptr := Mult;
+      Info_Ptr : Double_Ptr := Info;
+      Real_Ptr : Double_Ptr := Real;
+      Imag_Ptr : Double_Ptr := Imag;
+   begin
+      M.all := Int(S.M);
+      Info_Ptr.all := Double(S.err);
+      Increment(Info_Ptr);
+      Info_Ptr.all := Double(S.rco);
+      Increment(Info_Ptr);
+      Info_Ptr.all := Double(S.res);
+      Real_Ptr.all := Double(REAL_PART(S.T));
+      Imag_Ptr.all := Double(IMAG_PART(S.T));
+      Increment(Real_Ptr); Increment(Imag_Ptr);
+      for I in S.V'Range loop
+         Real_Ptr.all := Double(REAL_PART(S.V(I)));
+         Imag_Ptr.all := Double(IMAG_PART(S.V(I)));
+         Increment(Real_Ptr); Increment(Imag_Ptr);
+      end loop;
+   end Get_Solution;
+
+   function Mixed_Volume_Algorithm
      (
-      N        : in  Natural; -- number of variables = number of polys
-      M        : in  Natural; -- total size of support
-      Indices  : in  Int_Ptr;
-      Sizes    : in  Int_Ptr;
-      Supports : in  Int_Ptr
-     ) is
+      N         : in Natural; -- number of variables = number of polys
+      M         : in Natural; -- total size of support
+      Indices   : in Int_Ptr;
+      Sizes     : in Int_Ptr;
+      Supports  : in Int_Ptr
+     ) return Link_To_Solved_System is
       Index_Ptr : Int_Ptr := Indices;
       Size_Ptr  : Int_Ptr := Sizes;
       Supp_Ptr  : Int_Ptr := Supports;
@@ -240,6 +296,7 @@ package body Cy2ada is
       Mixvol    : Natural;
       Q         : Link_To_Poly_Sys := new Poly_Sys(1..N);
       Qsols     : Solution_List;
+      Result    : Link_To_Solved_System := New Solved_System;
    begin
       for I in 1..N loop
          Ind(I) := Integer(Index_Ptr.all);
@@ -263,6 +320,10 @@ package body Cy2ada is
          Put(Q.all); New_Line;
          Put(Qsols); New_Line;
       end;
+      Result.all.System := Q;
+      Result.all.Num_Solns := Mixvol;
+      Result.all.Solutions := Qsols;
+      return Result;
    end Mixed_Volume_Algorithm;
 
    procedure Compute_Mixed_Volume
@@ -279,10 +340,10 @@ package body Cy2ada is
       Mixvol   : out natural ) is
 
       Size,Nb     : natural;
-      Mtype,Idx     : Standard_Integer_Vectors.Link_to_Vector;
-      Vtx           : Standard_Integer_VecVecs.Link_to_VecVec;
-      Lift          : Standard_Floating_Vectors.Link_to_Vector;
-      Cells         : CellStack;
+      Mtype,Idx   : Standard_Integer_Vectors.Link_to_Vector;
+      Vtx         : Standard_Integer_VecVecs.Link_to_VecVec;
+      Lift        : Standard_Floating_Vectors.Link_to_Vector;
+      Cells       : CellStack;
 
    begin
       Put("Number of variables: "); Put(N,1); New_Line;
@@ -322,5 +383,32 @@ package body Cy2ada is
       end loop;
       New_Line;
    end Compute_Mixed_Volume;
+
+   procedure Silently_Continue is
+      new Silent_Continue(Max_Norm,
+                          Standard_Homotopy.Eval,
+                          Standard_Homotopy.Diff,
+                          Standard_Homotopy.Diff);
+
+   procedure Do_Homotopy (
+                          Q : in Link_To_Solved_System;  -- solved start system
+                          P : in Link_To_Solved_System   -- unsolved target system
+                         ) is
+
+      Psys   : Poly_Sys := P.all.System.all;
+      Qsys   : Poly_Sys := Q.all.System.all;
+      Sols   : Solution_List;
+      Target : Complex_Number := Create(1.0);
+      A      : Complex_Number := Random1;
+   begin
+      Copy(Q.all.Solutions, Sols);
+      Set_Continuation_Parameter(Sols, Create(0.0));
+      Standard_Homotopy.Create(Psys, Qsys, 2, A);
+      Silently_Continue(Sols, False, Target);
+      P.all.Num_Solns :=  Q.all.Num_Solns;
+      P.all.Solutions := Sols;
+      Put(Sols);
+  end Do_Homotopy;
+
 
 end Cy2ada;
