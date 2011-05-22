@@ -11,6 +11,7 @@ with Generic_Polynomial_Systems;
 with Standard_Complex_Poly_Systems;    use Standard_Complex_Poly_Systems;
 with Symbol_Table;
 with Floating_Mixed_Subdivisions;      use Floating_Mixed_Subdivisions;
+with Standard_Complex_Solutions;       use Standard_Complex_Solutions;
 
 package Cy2ada is
    type Int_Array is array ( Integer range <>) of aliased int;
@@ -24,6 +25,16 @@ package Cy2ada is
       new Interfaces.C.Pointers( Integer, double, Double_Array, 0.0);
    use Doubles_Ptrs;
    type Double_Ptr is new Doubles_Ptrs.Pointer;
+
+   type Link_To_Solution_Array is access Solution_Array;
+
+   type Solved_System is record
+      System    : Link_To_Poly_Sys;
+      Num_Solns : Natural;
+      Solutions : Solution_List;
+   end record;
+
+   type Link_To_Solved_System is access Solved_System;
 
    procedure Reset_Symbols( Max : in Integer);
    pragma Export ( C, Reset_Symbols, "reset_symbols" );
@@ -81,12 +92,12 @@ package Cy2ada is
        N      : in Integer) return Poly;
    pragma Export ( C, Specialize_Poly, "specialize_poly" );
 
-   procedure Mixed_Volume_Algorithm
+   function Mixed_Volume_Algorithm
      ( N        : in  Natural; -- number of variables = number of polys
        M        : in  Natural; -- total size of support
        Indices  : in  Int_Ptr;
        Sizes    : in  Int_Ptr;
-       Supports : in  Int_Ptr );
+       Supports : in  Int_Ptr ) return Link_To_Solved_System;
    pragma Export ( C, Mixed_Volume_Algorithm, "mixed_volume_algorithm" );
 
    procedure Compute_Mixed_Volume
@@ -102,7 +113,32 @@ package Cy2ada is
       Sub      : out Mixed_Subdivision;
       Mixvol   : out natural );
 
-   function Poly_Sys_Get(Sys : in Poly_Sys; Index : in Natural ) return Poly;
-   pragma Export ( C, Poly_Sys_Get, "poly_sys_get" );
+   function New_Solved_System (N : in Natural) return Link_To_Solved_System;
+   pragma Export ( C, New_Solved_System, "new_solved_system" );
+
+   function Get_Poly(Sys : in Link_To_Solved_System; Index : in Natural )
+                    return Poly;
+   pragma Export ( C, Get_Poly, "get_poly" );
+
+   procedure Set_Poly( Sys   : in Link_To_Solved_System;
+                       Index : in Integer;
+                       P     : in Poly );
+   pragma Export ( C, Set_Poly, "set_poly" );
+
+   function Get_Num_Solns (Sys : in Link_To_Solved_System) return Int;
+   pragma Export ( C, Get_Num_Solns, "get_num_solns" );
+
+   procedure Get_Solution ( Sys   : in Link_To_Solved_System;
+                            Index : in Natural;
+                            Mult  : in Int_Ptr;
+                            Info  : in Double_Ptr;
+                            Real  : in Double_Ptr;
+                            Imag  : in Double_Ptr );
+   pragma Export ( C, Get_Solution, "get_solution" );
+
+   procedure Do_Homotopy (Q : in Link_To_Solved_System;  -- solved start system
+                          P : in Link_To_Solved_System   -- unsolved target system
+                         );
+   pragma Export ( C, Do_Homotopy, "do_homotopy" );
 
 end Cy2ada;
