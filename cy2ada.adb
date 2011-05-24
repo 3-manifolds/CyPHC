@@ -44,6 +44,7 @@ with Mixedvol_Algorithm;                 use Mixedvol_Algorithm;
 with Drivers_For_Mixedvol_Algorithm;     use Drivers_For_Mixedvol_Algorithm;
 with Increment_and_Fix_Continuation;     use Increment_and_Fix_Continuation;
 with Standard_Homotopy;                  use Standard_Homotopy;
+with Continuation_Parameters;
 -- with Drivers_For_Poly_Continuation;
 -- with Drivers_For_Homotopy_Creation;
 
@@ -308,19 +309,23 @@ package body Cy2ada is
          Supp(I) := Integer(Supp_Ptr.all);
          Increment(Supp_Ptr);
       end loop;
-      Put("Computing mixed volume"); New_Line;
+      -- Put("Computing mixed volume"); New_Line;
       Compute_Mixed_Volume(N, M, Ind,  Cnt, Supp, 0.0,
                            R, Mix, Perm, Sub, MixVol);
       declare
          LS : Arrays_of_Floating_Vector_Lists.Array_of_Lists(Mix'range)
             := Floating_Lifting_Utilities.Lifted_Supports(mix'last,sub);
       begin
-         Put("Solving the random system:"); New_Line;
+         -- Put("Solving the random system:"); New_Line;
          Random_Coefficient_System(N, Mix.all, LS, Sub, Q.all, Qsols);
-         Put(Q.all); New_Line;
-         Put(Qsols); New_Line;
+         -- Put(Q.all); New_Line;
+         -- Put(Qsols); New_Line;
       end;
-      Result.all.System := Q;
+      Result.all.System := new Poly_Sys(Q'Range);
+      for K in Q'Range loop
+         Result.all.System(Perm(K-1)+1) := Q(K);
+         end loop;
+      -- Should we be freeing Q here?
       Result.all.Num_Solns := Mixvol;
       Result.all.Solutions := Qsols;
       return Result;
@@ -346,42 +351,40 @@ package body Cy2ada is
       Cells       : CellStack;
 
    begin
-      Put("Number of variables: "); Put(N,1); New_Line;
-      Put("Size of support: "); Put(M,1); New_Line;
-      Put("Indices: ");
-      Standard_Integer_Vectors_IO.Put(Ind); New_Line;
-      Put("Counts: ");
-      Standard_Integer_Vectors_IO.Put(Cnt); New_Line;
-      Put("Support: ");
-      Standard_Integer_Vectors_IO.Put(Supp); New_Line;
+      -- Put("Number of variables: ");  Put(N,1); New_Line;
+      -- Put("Size of support: ");  Put(M,1); New_Line;
+      -- Put("Indices: ");
+      -- Standard_Integer_Vectors_IO.Put(Ind); New_Line;
+      -- Put("Counts: ");
+      -- Standard_Integer_Vectors_IO.Put(Cnt); New_Line;
+      -- Put("Support: ");
+      -- Standard_Integer_Vectors_IO.Put(Supp); New_Line;
 
       mv(N, M, Ind, Cnt, Supp, Stlb,
          R, Mtype, Perm, Idx, Vtx, Lift, Size, Nb, Cells, Mixvol);
-      Put("The mixed volume is "); Put(mixvol, 1); Put_Line(".");
-      Put("There are "); Put(nb, 1); Put_Line(" mixed cells.");
+      -- Put("The mixed volume is ");  Put(mixvol, 1);  Put_Line(".");
+      -- Put("There are ");  Put(nb, 1);  Put_Line(" mixed cells.");
       put_line("Creating a regular mixed-cell configuration ...");
-      Put("R = "); Put(R,1); New_Line;
+      -- Put("R = ");  Put(R,1); New_Line;
       if R < N
       then
-         Put("Using the permutation: ");
-         for I in 1..N loop
-            Put(Perm.all(I),1); Put(", ");
-         end loop;
-         New_Line;
+         -- Put("Using the permutation for mixed cells."); New_Line;
          Create_Mixed_Cell_Configuration
         (N, R, Size, Nb, Mtype, Perm, Vtx, Lift, Cells, Sub );
       else
-         Put("Not using the  permutation.");New_Line;
+         -- Put("Not using the  permutation for mixed cells.");New_Line;
          Create_Mixed_Cell_Configuration
         (N, R, Size, Nb, Mtype, Vtx, Lift, Cells, Sub );
       end if;
       Mix := new Standard_Integer_Vectors.Vector( 1..R );
-      Put("Mix: ");
+      -- Put("Mix: ");
       for I in 1..R loop
          Mix(I ) := Mtype(I-1);
-         Put(Mix(I),1);Put(", ");
+         -- Put(Mix(I),1); Put(", ");
       end loop;
       New_Line;
+      -- Put("Permutation: "); New_Line;
+      -- Put(Perm); New_Line;
    end Compute_Mixed_Volume;
 
    procedure Silently_Continue is
@@ -404,10 +407,11 @@ package body Cy2ada is
       Copy(Q.all.Solutions, Sols);
       Set_Continuation_Parameter(Sols, Create(0.0));
       Standard_Homotopy.Create(Psys, Qsys, 2, A);
+      Continuation_Parameters.Tune(2);
       Silently_Continue(Sols, False, Target);
       P.all.Num_Solns :=  Q.all.Num_Solns;
       P.all.Solutions := Sols;
-      Put(Sols);
+      -- Put(Sols);
   end Do_Homotopy;
 
 

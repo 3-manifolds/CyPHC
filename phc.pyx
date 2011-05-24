@@ -290,9 +290,9 @@ cdef class PHCSystem:
         for i in range(num_solns):
             get_solution(solved_system, i, &mult, info, real, imag)
             err, rco, res = info[0], info[1], info[2]
-            param = complex(real[0], imag[0])
+            t = complex(real[0], imag[0])
             point = [complex(real[j],imag[j]) for j in range(1, 1+dim)]
-            solns.append(PHCSolution(param, mult, point, err, rco, res))
+            solns.append(PHCSolution(t, mult, err, rco, res, point))
         free(imag)
         free(real)
         return solns
@@ -309,25 +309,30 @@ cdef class PHCSystem:
             self.build_starter()
         return self.start_system, self.start_solutions
 
-    def solution_list(self):
+    def solution_list(self, include_failed=False):
         if self.solved_target == NULL:
             self.MVsolve()
-        return self.solutions
+        if include_failed:
+            return self.solutions
+        else:
+            return [S for S in self.solutions if S.t.real == 1.0]
         
 class PHCSolution:
-    def __init__(self, param=None, mult=None, point=[],
-                 err=None, rco=None, res=None):
-        self.param, self.mult, self.point = param, mult, point
+    def __init__(self, t=None, mult=None,
+                 err=None, rco=None, res=None, point=[]):
+        self.t, self.mult, self.point = t, mult, point
         self.err, self.rco, self.res = err, rco, res
 
     def __repr__(self):
-        return '\n'+'\n'.join(
-            ['========'] +
-            ['t=%s; err=%s; rco=%s; res=%s'%(
-                self.param, self.err, self.rco, self.res)] +
-            [str(z) for z in self.point] +
-            ['========'])
-                          
+        return (
+            '\n'+
+            '\n'.join(
+            ['PHCSolution(t=%s, mult=%s'%(self.t, self.mult),
+             'err=%s; rco=%s; res=%s'%(self.err, self.rco, self.res),
+             'point='])
+            + '[\n'
+            + ',\n'.join([repr(z) for z in self.point])+'\n])\n' 
+            )              
                           
     
 
