@@ -364,7 +364,7 @@ package body Cy2ada is
          R, Mtype, Perm, Idx, Vtx, Lift, Size, Nb, Cells, Mixvol);
       -- Put("The mixed volume is ");  Put(mixvol, 1);  Put_Line(".");
       -- Put("There are ");  Put(nb, 1);  Put_Line(" mixed cells.");
-      put_line("Creating a regular mixed-cell configuration ...");
+      -- Put_Line("Creating a regular mixed-cell configuration ...");
       -- Put("R = ");  Put(R,1); New_Line;
       if R < N
       then
@@ -414,5 +414,25 @@ package body Cy2ada is
       -- Put(Sols);
   end Do_Homotopy;
 
+  procedure Filter_Solns ( P : in Link_To_Solved_System ) is
+     Tmp : Solution_List := P.all.Solutions;
+     N : Integer := P.all.Num_Solns;
+     Target : Complex_Number := Create(1.0);
+  begin
+     while not Is_Null(Tmp) loop
+      declare
+        ls : constant Link_to_Solution := Head_Of(tmp);
+      begin
+         if Ls.T /= Target then
+            Ls.M := 0;
+            N := N - 1;
+         end if;
+         Set_Head(Tmp,Ls);
+      end;
+      Tmp := Tail_Of(Tmp);
+    end loop;
+    Remove_All(P.all.Solutions, 0);
+    P.all.Num_Solns := N;
+  end Filter_Solns;
 
 end Cy2ada;

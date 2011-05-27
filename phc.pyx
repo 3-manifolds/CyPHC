@@ -38,8 +38,10 @@ cdef extern void* get_poly(void* solved, int n)
 cdef extern void set_poly(void* solved, int n, void* p)
 cdef extern int get_num_solns (void* solved)
 cdef extern void get_solution(void *solved, int n,
-                              int* mult, double* info, double* real, double*imag)
+                              int* mult, double* info,
+                              double* real, double*imag)
 cdef extern void do_homotopy(void *start, void *target)
+cdef extern void filter_solns(void *solved)
 
 cdef class PHCContext:
 
@@ -202,7 +204,6 @@ cdef class PHCPoly:
         new_poly = specialize_poly(self.poly, &x_real, &x_imag, n)
         new_ring = self.ring.without(var)
         result = PHCPoly(new_ring, '')
-        print result
         result.replace_poly(new_poly)
         return result
                    
@@ -229,8 +230,10 @@ cdef class PHCSystem:
 
     def __repr__(self):
         return '\n'.join(
-            ['System over %s:'%str(self.ring)] +
-            ['%6s'%('%d: %s'%(n,p)) for n, p in enumerate(self.polys)])
+            ['PHCSystem(%s,\n['%str(self.ring)] +
+            ['%s'%p for p in self.polys] +
+            ['])']
+            )
 
     def __getitem__(self, index):
         return self.polys[index]
@@ -297,11 +300,13 @@ cdef class PHCSystem:
         free(real)
         return solns
         
-    cdef MVsolve(self):
+    cdef MVsolve(self, filter=True):
         self.solved_target = new_solved_system(len(self))
         for n, P in enumerate(self):
             set_poly(self.solved_target, n+1, PHCPoly.get_pointer(P))
         do_homotopy(self.solved_starter, self.solved_target)
+        if filter:
+            filter_solns(self.solved_target)
         self.solutions = self.extract_solns(self.solved_target)
 
     def MVstart(self):
@@ -309,13 +314,61 @@ cdef class PHCSystem:
             self.build_starter()
         return self.start_system, self.start_solutions
 
-    def solution_list(self, include_failed=False):
+    def solution_list(self, filter=True):
         if self.solved_target == NULL:
-            self.MVsolve()
-        if include_failed:
-            return self.solutions
-        else:
-            return [S for S in self.solutions if S.t.real == 1.0]
+            self.MVstart()
+            self.MVsolve(filter)
+        return self.solutions
+
+class ParametrizedSystem:
+    """
+    A polynomial system in which one of the variables is
+    treated as a parameter.  Instantiate with a ring that
+    includes the parameter as an indeterminate, and a list
+    of polynomials over that ring.
+
+    The object maintains a dictionary of solved systems
+    keyed by parameter value.
+    """
+  
+    def __init__(self, ring, parameter, polys):
+        self.parameter = parameter
+        self.ring = ring
+        self.system = PHCSystem(ring, polys)
+        variables = list(ring)
+        variables.remove(parameter)
+        self.base_ring = PolyRing(variables)
+        self.fibers = []
+        
+    def __getitem__(self, index):
+        return self.system[index]
+
+    def __repr__(self):
+        return '\n'.join(['ParametrizedSystem(%s, %s,'%
+                          (repr(self.ring), self.parameter),
+                          '['] +
+                         ['%s'%p for p in self.system] +
+                         ['])'])
+
+    def specialize(self, param_value):
+        """
+        Return a PHCSytem obtiained by specializing the parameter.
+        """
+        polys = [p.specialize(self.parameter, param_value)
+                 for p in self]
+        ring = self.base_ring
+        return PHCSystem(ring, polys)
+
+    def add_start_fiber(self, param_value):
+        """
+        Solve the specialized system from scratch, using the mixed
+        volume algorithm.  Return the solution_list.
+        """
+        self.fibers[param_value] = self.specialize(param_value).solution_list()
+        
+    def transport(self, start_param, end_param):
+        pass
+
         
 class PHCSolution:
     def __init__(self, t=None, mult=None,
