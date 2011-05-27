@@ -141,4 +141,7 @@ package Cy2ada is
                          );
    pragma Export ( C, Do_Homotopy, "do_homotopy" );
 
+   procedure Filter_Solns ( P : in Link_To_Solved_System );
+   pragma Export ( C, Filter_Solns, "filter_solns" );
+
 end Cy2ada;
