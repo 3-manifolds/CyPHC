@@ -29,7 +29,7 @@ args = [
     'make',
     'GNATMAKE=%s'%gnatmake,
     'GNATBIND=%s'%gnatbind,
-    ]
+    ] + sys.argv[1:]
 
 if sys.platform == 'darwin':
     args.append('GNATFLAGS=-gnat95 -gnatv -O3 -gnatp -gnatf ')

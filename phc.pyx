@@ -40,7 +40,7 @@ cdef extern int get_num_solns (void* solved)
 cdef extern void get_solution(void *solved, int n,
                               int* mult, double* info,
                               double* real, double*imag)
-cdef extern void do_homotopy(void *start, void *target)
+cdef extern void do_homotopy(void *start, void *target, int allow_clustering)
 cdef extern void filter_solns(void *solved)
 
 cdef class PHCContext:
@@ -309,18 +309,17 @@ cdef class PHCSystem:
         self.solved_target = new_solved_system(len(self))
         for n, P in enumerate(self):
             set_poly(self.solved_target, n+1, PHCPoly.get_pointer(P))
-        do_homotopy(self.solved_starter, self.solved_target)
+        do_homotopy(self.solved_starter, self.solved_target, 0)
         if filter:
             filter_solns(self.solved_target)
         self.solutions = self.extract_solns(self.solved_target)
 
-    def HCsolve(self, start_system):
-        # need get_solved
+    def HCsolve(self, start_system, allow_clustering=0):
         cdef void* start = PHCSystem.get_solved(start_system) 
         self.solved_target = new_solved_system(len(self))
         for n, P in enumerate(self):
             set_poly(self.solved_target, n+1, PHCPoly.get_pointer(P))
-        do_homotopy(start, self.solved_target)
+        do_homotopy(start, self.solved_target, allow_clustering)
         self.solutions = self.extract_solns(self.solved_target)
 
     def solution_list(self, filter=True):
