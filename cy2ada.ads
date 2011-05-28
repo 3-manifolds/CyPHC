@@ -137,7 +137,8 @@ package Cy2ada is
    pragma Export ( C, Get_Solution, "get_solution" );
 
    procedure Do_Homotopy (Q : in Link_To_Solved_System;  -- solved start system
-                          P : in Link_To_Solved_System   -- unsolved target system
+                          P : in Link_To_Solved_System;  -- unsolved target system
+                          Allow_Clustering : in Integer  -- positive value allows collisions
                          );
    pragma Export ( C, Do_Homotopy, "do_homotopy" );
 

@@ -41,6 +41,7 @@ MVOBJ=$(MVRoot)/cell_stack.o $(MVRoot)/form_lp.o $(MVRoot)/index_tree_lp.o \
  $(MVRoot)/relation_table.o $(MVRoot)/prepare_for_mv.o
 
 #phc.so: b_cy2ada.c phc.pyx mv_glue.o
+
 phc.so: b_cy2ada.c phc.pyx
 	python setup.py build_ext --inplace
 
@@ -57,3 +58,6 @@ mv_glue.o: PHCbuild mv_glue.c
 
 clean :
 	-rm -rf PHCbuild build phc.c phc.so b_cy2ada.c
+
+extension: b_cy2ada.c phc.pyx
+	python setup.py build_ext

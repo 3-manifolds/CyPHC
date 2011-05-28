@@ -395,9 +395,9 @@ package body Cy2ada is
 
    procedure Do_Homotopy (
                           Q : in Link_To_Solved_System;  -- solved start system
-                          P : in Link_To_Solved_System   -- unsolved target system
+                          P : in Link_To_Solved_System;  -- unsolved target system
+                          Allow_Clustering : in Integer  -- positive value allows collisions
                          ) is
-
       Psys   : Poly_Sys := P.all.System.all;
       Qsys   : Poly_Sys := Q.all.System.all;
       Sols   : Solution_List;
@@ -408,6 +408,9 @@ package body Cy2ada is
       Set_Continuation_Parameter(Sols, Create(0.0));
       Standard_Homotopy.Create(Psys, Qsys, 2, A);
       Continuation_Parameters.Tune(2);
+      if Allow_Clustering > 0 then
+         Continuation_Parameters.tol_endg_distance := 0.0;
+      end if;
       Silently_Continue(Sols, False, Target);
       P.all.Num_Solns :=  Q.all.Num_Solns;
       P.all.Solutions := Sols;
