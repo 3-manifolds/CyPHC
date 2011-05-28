@@ -241,6 +241,9 @@ cdef class PHCSystem:
     def __len__(self):
         return len(self.polys)
 
+    cdef void* get_solved(self):
+        return self.solved_target
+    
     def supports(self):
         return [sorted(p.terms().keys()) for p in self]
 
@@ -300,7 +303,9 @@ cdef class PHCSystem:
         free(real)
         return solns
         
-    cdef MVsolve(self, filter=True):
+    def MVsolve(self, filter=True):
+        if self.solved_starter == NULL:
+            self.build_starter()
         self.solved_target = new_solved_system(len(self))
         for n, P in enumerate(self):
             set_poly(self.solved_target, n+1, PHCPoly.get_pointer(P))
@@ -309,14 +314,17 @@ cdef class PHCSystem:
             filter_solns(self.solved_target)
         self.solutions = self.extract_solns(self.solved_target)
 
-    def MVstart(self):
-        if self.solved_starter == NULL:
-            self.build_starter()
-        return self.start_system, self.start_solutions
+    def HCsolve(self, start_system):
+        # need get_solved
+        cdef void* start = PHCSystem.get_solved(start_system) 
+        self.solved_target = new_solved_system(len(self))
+        for n, P in enumerate(self):
+            set_poly(self.solved_target, n+1, PHCPoly.get_pointer(P))
+        do_homotopy(start, self.solved_target)
+        self.solutions = self.extract_solns(self.solved_target)
 
     def solution_list(self, filter=True):
         if self.solved_target == NULL:
-            self.MVstart()
             self.MVsolve(filter)
         return self.solutions
 
@@ -338,7 +346,7 @@ class ParametrizedSystem:
         variables = list(ring)
         variables.remove(parameter)
         self.base_ring = PolyRing(variables)
-        self.fibers = []
+        self.fibers = {}
         
     def __getitem__(self, index):
         return self.system[index]
@@ -352,7 +360,7 @@ class ParametrizedSystem:
 
     def specialize(self, param_value):
         """
-        Return a PHCSytem obtiained by specializing the parameter.
+        Return a PHCSytem obtained by specializing the parameter.
         """
         polys = [p.specialize(self.parameter, param_value)
                  for p in self]
@@ -362,13 +370,22 @@ class ParametrizedSystem:
     def add_start_fiber(self, param_value):
         """
         Solve the specialized system from scratch, using the mixed
-        volume algorithm.  Return the solution_list.
+        volume algorithm.  Record the solved system.
         """
-        self.fibers[param_value] = self.specialize(param_value).solution_list()
+        fiber = self.specialize(param_value)
+        fiber.MVsolve()
+        self.fibers[param_value] = fiber 
         
-    def transport(self, start_param, end_param):
-        pass
-
+    def transport(self, start_param, target_param, allow_collisions=False):
+        """
+        Starting from a previously solved system, perform a homotopy to
+        arrive at a solved sytem with a different (nearby) parameter value.
+        Solutions are not allowed to collide unless the flag is set to
+        true.
+        """
+        fiber = self.specialize(target_param)
+        fiber.HCsolve(self.fibers[start_param])
+        self.fibers[target_param] = fiber
         
 class PHCSolution:
     def __init__(self, t=None, mult=None,
