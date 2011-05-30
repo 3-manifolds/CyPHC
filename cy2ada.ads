@@ -138,11 +138,13 @@ package Cy2ada is
 
    procedure Do_Homotopy (Q : in Link_To_Solved_System;  -- solved start system
                           P : in Link_To_Solved_System;  -- unsolved target system
-                          Allow_Clustering : in Integer  -- positive value allows collisions
+                          Allow_Clustering : in Integer  -- collisions allowed if > 0
                          );
    pragma Export ( C, Do_Homotopy, "do_homotopy" );
 
    procedure Filter_Solns ( P : in Link_To_Solved_System );
    pragma Export ( C, Filter_Solns, "filter_solns" );
+
+   function Is_Bad_Solution( Ls : in Link_To_Solution) return Boolean;
 
 end Cy2ada;
