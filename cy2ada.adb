@@ -403,13 +403,15 @@ package body Cy2ada is
       Qsys   : Poly_Sys := Q.all.System.all;
       Sols   : Solution_List;
       Target : Complex_Number := Create(1.0);
-      A      : Complex_Number := Random1;
+      -- A      : Complex_Number := Random1;
+      A      : Complex_Number := Create(1.0);
    begin
       Copy(Q.all.Solutions, Sols);
       Set_Continuation_Parameter(Sols, Create(0.0));
       Standard_Homotopy.Create(Psys, Qsys, 2, A);
-      Continuation_Parameters.Tune(4);
-      Predictor_Path_Type := 2;
+      Continuation_Parameters.Tune(2);
+      --Continuation_Parameters.Tune(4);
+      --Predictor_Path_Type := 2;
       if Allow_Clustering > 0 then
          Tol_Endg_Distance := 0.0;
       end if;
@@ -444,9 +446,9 @@ package body Cy2ada is
      use Continuation_Parameters;
      One : Complex_Number := Create(1.0);
   begin
---     if Ls.T /= One then
---        return True;
---     end if;
+     if Ls.T /= One then
+        return True;
+     end if;
      for I in 1..Ls.N loop
         if AbsVal(Ls.V(I)) < 10.0**(-6) then
            return True;
