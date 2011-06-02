@@ -382,7 +382,7 @@ package body Cy2ada is
          Mix(I ) := Mtype(I-1);
          -- Put(Mix(I),1); Put(", ");
       end loop;
-      New_Line;
+      -- New_Line;
       -- Put("Permutation: "); New_Line;
       -- Put(Perm); New_Line;
    end Compute_Mixed_Volume;
@@ -396,20 +396,24 @@ package body Cy2ada is
    procedure Do_Homotopy (
                           Q : in Link_To_Solved_System;  -- solved start system
                           P : in Link_To_Solved_System;  -- unsolved target system
-                          Allow_Clustering : in Integer  -- positive value allows collisions
+                          Allow_Clustering : in Integer  -- collisions allowed if > 0
                          ) is
+      use Continuation_Parameters;
       Psys   : Poly_Sys := P.all.System.all;
       Qsys   : Poly_Sys := Q.all.System.all;
       Sols   : Solution_List;
       Target : Complex_Number := Create(1.0);
-      A      : Complex_Number := Random1;
+      -- A      : Complex_Number := Random1;
+      A      : Complex_Number := Create(1.0);
    begin
       Copy(Q.all.Solutions, Sols);
       Set_Continuation_Parameter(Sols, Create(0.0));
       Standard_Homotopy.Create(Psys, Qsys, 2, A);
       Continuation_Parameters.Tune(2);
+      --Continuation_Parameters.Tune(4);
+      --Predictor_Path_Type := 2;
       if Allow_Clustering > 0 then
-         Continuation_Parameters.tol_endg_distance := 0.0;
+         Tol_Endg_Distance := 0.0;
       end if;
       Silently_Continue(Sols, False, Target);
       P.all.Num_Solns :=  Q.all.Num_Solns;
@@ -417,25 +421,54 @@ package body Cy2ada is
       -- Put(Sols);
   end Do_Homotopy;
 
-  procedure Filter_Solns ( P : in Link_To_Solved_System ) is
-     Tmp : Solution_List := P.all.Solutions;
-     N : Integer := P.all.Num_Solns;
-     Target : Complex_Number := Create(1.0);
+  procedure Filter_Solns ( P : in Link_To_Solved_System ; Tolerance : in Double_Ptr) is
+     Tmp : Solution_List := P.Solutions;
+     Keepers : Solution_List;
+     N : Integer := 0;
+     Tol : Double_Float := Double_Float(Tolerance.all);
   begin
      while not Is_Null(Tmp) loop
-      declare
-        ls : constant Link_to_Solution := Head_Of(tmp);
-      begin
-         if Ls.T /= Target then
-            Ls.M := 0;
-            N := N - 1;
-         end if;
-         Set_Head(Tmp,Ls);
-      end;
-      Tmp := Tail_Of(Tmp);
-    end loop;
-    Remove_All(P.all.Solutions, 0);
-    P.all.Num_Solns := N;
+        if not Is_Bad_Solution(Head_Of(Tmp), Tol) then
+           declare
+              Ls : Link_to_Solution := new Solution'(Head_Of(Tmp).all);
+           begin
+              Construct(Ls, Keepers);
+              N := N + 1;
+           end;
+        end if;
+       Tmp := Tail_Of(Tmp);
+     end loop;
+     Clear(P.Solutions);
+     P.Solutions := Keepers;
+     P.Num_Solns := N;
   end Filter_Solns;
+
+  function Is_Bad_Solution( Ls : in Link_To_Solution; Tolerance : in Double_Float )
+                          return Boolean is
+     use Continuation_Parameters;
+     One : Complex_Number := Create(1.0);
+     Size : Double_Float;
+  begin
+     Put("Filtering"); New_Line;
+     Put("Tolerance: "); Put(Tolerance); New_Line;
+     if Ls.T /= One then
+        Put("At infinity"); New_Line;
+        return True;
+     end if;
+     for I in 1..Ls.N loop
+        Size := AbsVal(Ls.V(I));
+        Put(Size);
+        if Size < Tolerance then
+           Put(" Bad"); New_Line;
+           return True;
+        end if;
+        if AbsVal(Ls.V(I)) > 1.0/Tolerance then
+           Put(" Bad"); New_Line;
+           return True;
+        end if;
+        Put(" Good"); New_Line;
+     end loop;
+     return False;
+  end Is_Bad_Solution;
 
 end Cy2ada;

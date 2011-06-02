@@ -40,8 +40,8 @@ cdef extern int get_num_solns (void* solved)
 cdef extern void get_solution(void *solved, int n,
                               int* mult, double* info,
                               double* real, double*imag)
-cdef extern void do_homotopy(void *start, void *target, int allow_clustering)
-cdef extern void filter_solns(void *solved)
+cdef extern void do_homotopy(void* start, void* target, int allow_clustering)
+cdef extern void filter_solns(void* solved, double* tolerance)
 
 cdef class PHCContext:
 
@@ -241,6 +241,9 @@ cdef class PHCSystem:
     def __len__(self):
         return len(self.polys)
 
+    def num_variables(self):
+        return len(self.ring)
+    
     cdef void* get_solved(self):
         return self.solved_target
     
@@ -303,7 +306,7 @@ cdef class PHCSystem:
         free(real)
         return solns
         
-    def MVsolve(self, filter=True):
+    def MVsolve(self, filter=True, double tolerance=1.0E-06):
         if self.solved_starter == NULL:
             self.build_starter()
         self.solved_target = new_solved_system(len(self))
@@ -311,7 +314,8 @@ cdef class PHCSystem:
             set_poly(self.solved_target, n+1, PHCPoly.get_pointer(P))
         do_homotopy(self.solved_starter, self.solved_target, 0)
         if filter:
-            filter_solns(self.solved_target)
+            print 'MVsolve tolerance: %f'%tolerance
+            filter_solns(self.solved_target, &tolerance)
         self.solutions = self.extract_solns(self.solved_target)
 
     def HCsolve(self, start_system, allow_clustering=0):
@@ -322,20 +326,18 @@ cdef class PHCSystem:
         do_homotopy(start, self.solved_target, allow_clustering)
         self.solutions = self.extract_solns(self.solved_target)
 
-    def solution_list(self, filter=True):
+    def solution_list(self, filter=True, double tolerance=1.0E-06):
         if self.solved_target == NULL:
-            self.MVsolve(filter)
+            print 'solution_list tolerance = %f'%tolerance
+            self.MVsolve(filter=filter, tolerance=tolerance)
         return self.solutions
 
 class ParametrizedSystem:
     """
     A polynomial system in which one of the variables is
     treated as a parameter.  Instantiate with a ring that
-    includes the parameter as an indeterminate, and a list
-    of polynomials over that ring.
-
-    The object maintains a dictionary of solved systems
-    keyed by parameter value.
+    includes the parameter as an indeterminate, the name of
+    the parameter, and a list of polynomials over the ring.
     """
   
     def __init__(self, ring, parameter, polys):
@@ -345,7 +347,7 @@ class ParametrizedSystem:
         variables = list(ring)
         variables.remove(parameter)
         self.base_ring = PolyRing(variables)
-        self.fibers = {}
+        self.fibers = []
         
     def __getitem__(self, index):
         return self.system[index]
@@ -366,25 +368,26 @@ class ParametrizedSystem:
         ring = self.base_ring
         return PHCSystem(ring, polys)
 
-    def add_start_fiber(self, param_value):
+    def start(self, param_value, double tolerance):
         """
         Solve the specialized system from scratch, using the mixed
-        volume algorithm.  Record the solved system.
+        volume algorithm.
         """
-        fiber = self.specialize(param_value)
-        fiber.MVsolve()
-        self.fibers[param_value] = fiber 
+        print 'start tolerance = %f'%tolerance
+        system = self.specialize(param_value)
+        system.MVsolve(tolerance=tolerance)
+        return system 
         
-    def transport(self, start_param, target_param, allow_collisions=False):
+    def transport(self, start, target_param, allow_collisions=False):
         """
-        Starting from a previously solved system, perform a homotopy to
+        Starting from a solved specialized system, perform a homotopy to
         arrive at a solved sytem with a different (nearby) parameter value.
         Solutions are not allowed to collide unless the flag is set to
         true.
         """
-        fiber = self.specialize(target_param)
-        fiber.HCsolve(self.fibers[start_param])
-        self.fibers[target_param] = fiber
+        system = self.specialize(target_param)
+        system.HCsolve(start)
+        return system
         
 class PHCSolution:
     def __init__(self, t=None, mult=None,
@@ -403,7 +406,4 @@ class PHCSolution:
             + ',\n'.join([repr(z) for z in self.point])+'\n])\n' 
             )              
                           
-    
-
-                 
 phc_context = PHCContext()
