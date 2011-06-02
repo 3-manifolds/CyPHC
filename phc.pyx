@@ -40,8 +40,8 @@ cdef extern int get_num_solns (void* solved)
 cdef extern void get_solution(void *solved, int n,
                               int* mult, double* info,
                               double* real, double*imag)
-cdef extern void do_homotopy(void *start, void *target, int allow_clustering)
-cdef extern void filter_solns(void *solved)
+cdef extern void do_homotopy(void* start, void* target, int allow_clustering)
+cdef extern void filter_solns(void* solved, double* tolerance)
 
 cdef class PHCContext:
 
@@ -306,7 +306,7 @@ cdef class PHCSystem:
         free(real)
         return solns
         
-    def MVsolve(self, filter=True):
+    def MVsolve(self, filter=True, double tolerance=1.0E-06):
         if self.solved_starter == NULL:
             self.build_starter()
         self.solved_target = new_solved_system(len(self))
@@ -314,7 +314,8 @@ cdef class PHCSystem:
             set_poly(self.solved_target, n+1, PHCPoly.get_pointer(P))
         do_homotopy(self.solved_starter, self.solved_target, 0)
         if filter:
-            filter_solns(self.solved_target)
+            print 'MVsolve tolerance: %f'%tolerance
+            filter_solns(self.solved_target, &tolerance)
         self.solutions = self.extract_solns(self.solved_target)
 
     def HCsolve(self, start_system, allow_clustering=0):
@@ -325,9 +326,10 @@ cdef class PHCSystem:
         do_homotopy(start, self.solved_target, allow_clustering)
         self.solutions = self.extract_solns(self.solved_target)
 
-    def solution_list(self, filter=True):
+    def solution_list(self, filter=True, double tolerance=1.0E-06):
         if self.solved_target == NULL:
-            self.MVsolve(filter)
+            print 'solution_list tolerance = %f'%tolerance
+            self.MVsolve(filter=filter, tolerance=tolerance)
         return self.solutions
 
 class ParametrizedSystem:
@@ -366,13 +368,14 @@ class ParametrizedSystem:
         ring = self.base_ring
         return PHCSystem(ring, polys)
 
-    def start(self, param_value):
+    def start(self, param_value, double tolerance):
         """
         Solve the specialized system from scratch, using the mixed
         volume algorithm.
         """
+        print 'start tolerance = %f'%tolerance
         system = self.specialize(param_value)
-        system.MVsolve()
+        system.MVsolve(tolerance=tolerance)
         return system 
         
     def transport(self, start, target_param, allow_collisions=False):

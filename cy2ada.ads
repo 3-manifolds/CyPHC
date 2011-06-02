@@ -142,9 +142,10 @@ package Cy2ada is
                          );
    pragma Export ( C, Do_Homotopy, "do_homotopy" );
 
-   procedure Filter_Solns ( P : in Link_To_Solved_System );
+   procedure Filter_Solns ( P : in Link_To_Solved_System ; Tolerance : in Double_Ptr);
    pragma Export ( C, Filter_Solns, "filter_solns" );
 
-   function Is_Bad_Solution( Ls : in Link_To_Solution) return Boolean;
+   function Is_Bad_Solution( Ls : in Link_To_Solution ; Tolerance : in Double_Float )
+                           return Boolean;
 
 end Cy2ada;
