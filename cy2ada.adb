@@ -421,13 +421,14 @@ package body Cy2ada is
       -- Put(Sols);
   end Do_Homotopy;
 
-  procedure Filter_Solns ( P : in Link_To_Solved_System ) is
+  procedure Filter_Solns ( P : in Link_To_Solved_System ; Tolerance : in Double_Ptr) is
      Tmp : Solution_List := P.Solutions;
      Keepers : Solution_List;
      N : Integer := 0;
+     Tol : Double_Float := Double_Float(Tolerance.all);
   begin
      while not Is_Null(Tmp) loop
-        if not Is_Bad_Solution(Head_Of(Tmp)) then
+        if not Is_Bad_Solution(Head_Of(Tmp), Tol) then
            declare
               Ls : Link_to_Solution := new Solution'(Head_Of(Tmp).all);
            begin
@@ -442,20 +443,30 @@ package body Cy2ada is
      P.Num_Solns := N;
   end Filter_Solns;
 
-  function Is_Bad_Solution( Ls : in Link_To_Solution) return Boolean is
+  function Is_Bad_Solution( Ls : in Link_To_Solution; Tolerance : in Double_Float )
+                          return Boolean is
      use Continuation_Parameters;
      One : Complex_Number := Create(1.0);
+     Size : Double_Float;
   begin
+     Put("Filtering"); New_Line;
+     Put("Tolerance: "); Put(Tolerance); New_Line;
      if Ls.T /= One then
+        Put("At infinity"); New_Line;
         return True;
      end if;
      for I in 1..Ls.N loop
-        if AbsVal(Ls.V(I)) < 10.0**(-6) then
+        Size := AbsVal(Ls.V(I));
+        Put(Size);
+        if Size < Tolerance then
+           Put(" Bad"); New_Line;
            return True;
         end if;
-        if AbsVal(Ls.V(I)) > 10.0**(6) then
+        if AbsVal(Ls.V(I)) > 1.0/Tolerance then
+           Put(" Bad"); New_Line;
            return True;
         end if;
+        Put(" Good"); New_Line;
      end loop;
      return False;
   end Is_Bad_Solution;
