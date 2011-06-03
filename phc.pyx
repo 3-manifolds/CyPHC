@@ -314,7 +314,6 @@ cdef class PHCSystem:
             set_poly(self.solved_target, n+1, PHCPoly.get_pointer(P))
         do_homotopy(self.solved_starter, self.solved_target, 0)
         if filter:
-            print 'MVsolve tolerance: %f'%tolerance
             filter_solns(self.solved_target, &tolerance)
         self.solutions = self.extract_solns(self.solved_target)
 
@@ -328,7 +327,6 @@ cdef class PHCSystem:
 
     def solution_list(self, filter=True, double tolerance=1.0E-06):
         if self.solved_target == NULL:
-            print 'solution_list tolerance = %f'%tolerance
             self.MVsolve(filter=filter, tolerance=tolerance)
         return self.solutions
 
@@ -373,7 +371,6 @@ class ParametrizedSystem:
         Solve the specialized system from scratch, using the mixed
         volume algorithm.
         """
-        print 'start tolerance = %f'%tolerance
         system = self.specialize(param_value)
         system.MVsolve(tolerance=tolerance)
         return system 

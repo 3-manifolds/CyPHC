@@ -449,24 +449,24 @@ package body Cy2ada is
      One : Complex_Number := Create(1.0);
      Size : Double_Float;
   begin
-     Put("Filtering"); New_Line;
-     Put("Tolerance: "); Put(Tolerance); New_Line;
+     --Put("Filtering"); New_Line;
+     --Put("Tolerance: "); Put(Tolerance); New_Line;
      if Ls.T /= One then
-        Put("At infinity"); New_Line;
+        --Put("At infinity"); New_Line;
         return True;
      end if;
      for I in 1..Ls.N loop
         Size := AbsVal(Ls.V(I));
-        Put(Size);
+        --Put(Size);
         if Size < Tolerance then
-           Put(" Bad"); New_Line;
+           --Put(" Bad"); New_Line;
            return True;
         end if;
         if AbsVal(Ls.V(I)) > 1.0/Tolerance then
-           Put(" Bad"); New_Line;
+           --Put(" Bad"); New_Line;
            return True;
         end if;
-        Put(" Good"); New_Line;
+        --Put(" Good"); New_Line;
      end loop;
      return False;
   end Is_Bad_Solution;
