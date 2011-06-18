@@ -32,6 +32,7 @@ with Standard_Complex_Polynomials_io;    use Standard_Complex_Polynomials_io;
 with Standard_Complex_Poly_Strings;      use Standard_Complex_Poly_Strings;
 with Standard_Complex_Poly_Systems;      use Standard_Complex_Poly_Systems;
 with Standard_Complex_Poly_Systems_io;   use Standard_Complex_Poly_Systems_io;
+with Standard_Complex_Laur_Systems;      use Standard_Complex_Laur_Systems;
 with Floating_Mixed_Subdivisions;        use Floating_Mixed_Subdivisions;
 with Floating_Mixed_Subdivisions_io;     use Floating_Mixed_Subdivisions_io;
 with Standard_Complex_Solutions;         use Standard_Complex_Solutions;
@@ -45,6 +46,15 @@ with Drivers_For_Mixedvol_Algorithm;     use Drivers_For_Mixedvol_Algorithm;
 with Increment_and_Fix_Continuation;     use Increment_and_Fix_Continuation;
 with Standard_Homotopy;                  use Standard_Homotopy;
 with Continuation_Parameters;
+with Double_Double_Numbers;
+with DoblDobl_Complex_Numbers_Cv;
+with DoblDobl_Complex_Vectors_Cv;
+with DoblDobl_Complex_Laurentials;
+with DoblDobl_Complex_Laur_Systems;
+with DoblDobl_Complex_Solutions;
+with Dobldobl_Polynomial_Convertors;     use Dobldobl_Polynomial_Convertors;
+with Standard_Poly_Laur_Convertors;      use Standard_Poly_Laur_Convertors;
+with DoblDobl_Root_Refiners;             use DoblDobl_Root_Refiners;
 -- with Drivers_For_Poly_Continuation;
 -- with Drivers_For_Homotopy_Creation;
 
@@ -470,5 +480,55 @@ package body Cy2ada is
      end loop;
      return False;
   end Is_Bad_Solution;
+
+  function DDSoln_To_Soln ( S : DoblDobl_Complex_Solutions.Solution )
+                  return Standard_Complex_Solutions.Solution is
+
+    result : Standard_Complex_Solutions.Solution(s.n);
+  begin
+    result.t := DoblDobl_Complex_Numbers_Cv.DoblDobl_Complex_To_Standard(s.t);
+    result.m := s.m;
+    result.v := DoblDobl_Complex_Vectors_Cv.DoblDobl_Complex_To_Standard(s.v);
+    result.err := Double_Double_Numbers.Hi_Part(S.err);
+    result.rco := Double_Double_Numbers.Hi_Part(S.rco);
+    result.res := Double_Double_Numbers.Hi_Part(S.res);
+    return result;
+  end DDSoln_To_Soln;
+
+  function DDSolnList_To_SolnList
+    ( l : DoblDobl_Complex_Solutions.Solution_List )
+    return Standard_Complex_Solutions.Solution_List is
+
+    result,result_last : Standard_Complex_Solutions.Solution_List;
+    tmp : DoblDobl_Complex_Solutions.Solution_List := l;
+
+    use DoblDobl_Complex_Solutions;
+
+  begin
+    while not Is_Null(tmp) loop
+      declare
+        ls : constant DoblDobl_Complex_Solutions.Link_to_Solution
+           := Head_Of(tmp);
+        ms : constant Standard_Complex_Solutions.Solution(ls.n)
+           := DDSoln_To_Soln(ls.all);
+      begin
+        Append(result,result_last,ms);
+      end;
+      tmp := Tail_Of(tmp);
+    end loop;
+    return result;
+  end DDSolnList_To_SolnList;
+
+  procedure Polish_Solns ( P : in Link_To_Solved_System ) is
+     Q  : constant Laur_Sys := Polynomial_To_Laurent_System(P.System.all);
+     QQ : constant DoblDobl_Complex_Laur_Systems.Laur_Sys
+        := Standard_Laur_Sys_to_DoblDobl_Complex(Q);
+     S  : DoblDobl_Complex_Solutions.Solution_List
+        := DoblDobl_Complex_Solutions.Create(P.Solutions);
+  begin
+     DoblDobl_Root_Refiner(QQ, S);
+     Clear(P.Solutions);
+     P.Solutions := DDSolnList_To_SolnList(S);
+  end Polish_Solns;
 
 end Cy2ada;

@@ -35,13 +35,13 @@ cdef extern void* mixed_volume_algorithm (int n, int m,
                                          int* supports)
 cdef extern void* new_solved_system(int n)
 cdef extern void* get_poly(void* solved, int n)
-cdef extern void set_poly(void* solved, int n, void* p)
-cdef extern int get_num_solns (void* solved)
-cdef extern void get_solution(void *solved, int n,
-                              int* mult, double* info,
-                              double* real, double*imag)
-cdef extern void do_homotopy(void* start, void* target, int allow_clustering)
-cdef extern void filter_solns(void* solved, double* tolerance)
+cdef extern void  set_poly(void* solved, int n, void* p)
+cdef extern int   get_num_solns (void* solved)
+cdef extern void  get_solution(void *solved, int n,
+                               int* mult, double* info,
+                               double* real, double*imag)
+cdef extern void  do_homotopy(void* start, void* target, int allow_clustering)
+cdef extern void  filter_solns(void* solved, double* tolerance)
 
 cdef class PHCContext:
 
