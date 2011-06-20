@@ -42,6 +42,7 @@ cdef extern void  get_solution(void *solved, int n,
                                double* real, double*imag)
 cdef extern void  do_homotopy(void* start, void* target, int allow_clustering)
 cdef extern void  filter_solns(void* solved, double* tolerance)
+cdef extern void  polish_solns(void* solved)
 
 cdef class PHCContext:
 
@@ -325,6 +326,12 @@ cdef class PHCSystem:
         do_homotopy(start, self.solved_target, allow_clustering)
         self.solutions = self.extract_solns(self.solved_target)
 
+    def polish(self):
+        if self.solved_target == NULL:
+            raise ValueError, 'System has not been solved yet.'
+        polish_solns(self.solved_target)
+        self.solutions = self.extract_solns(self.solved_target)
+        
     def solution_list(self, filter=True, double tolerance=1.0E-06):
         if self.solved_target == NULL:
             self.MVsolve(filter=filter, tolerance=tolerance)
