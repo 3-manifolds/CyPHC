@@ -526,9 +526,11 @@ package body Cy2ada is
      S  : DoblDobl_Complex_Solutions.Solution_List
         := DoblDobl_Complex_Solutions.Create(P.Solutions);
   begin
+     -- Put(P.Solutions);
      DoblDobl_Root_Refiner(QQ, S);
      Clear(P.Solutions);
      P.Solutions := DDSolnList_To_SolnList(S);
+     -- Put(P.Solutions);
   end Polish_Solns;
 
 end Cy2ada;
