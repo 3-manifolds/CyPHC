@@ -139,9 +139,14 @@ package Cy2ada is
                             Imag  : in Double_Ptr );
    pragma Export ( C, Get_Solution, "get_solution" );
 
-   procedure Do_Homotopy (Q : in Link_To_Solved_System;  -- solved start system
-                          P : in Link_To_Solved_System;  -- unsolved target system
-                          Allow_Clustering : in Integer  -- collisions allowed if > 0
+   function Add_Solutions ( Sys1  : in Link_To_Solved_System;
+                            Sys2  : in Link_To_Solved_System;
+                            Tolerance : in Double_Ptr ) return Int;
+   pragma Export ( C, Add_Solutions, "add_solutions" );
+
+   procedure Do_Homotopy (Q : in Link_To_Solved_System; -- solved start system
+                          P : in Link_To_Solved_System; -- unsolved target system
+                          Allow_Clustering : in Integer -- collisions OK if > 0
                          );
    pragma Export ( C, Do_Homotopy, "do_homotopy" );
 

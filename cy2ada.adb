@@ -287,6 +287,38 @@ package body Cy2ada is
       end loop;
    end Get_Solution;
 
+   function Add_Solutions ( Sys1  : in Link_To_Solved_System;
+                            Sys2  : in Link_To_Solved_System;
+                            Tolerance : in Double_Ptr )
+                          return Int is
+      -- Adds solutions of Sys1 to the solution list of Sys2
+      -- if they are not already there (up to the given tolerance).
+      -- Returns the number of solutions added.
+      -- You are responsible for ensuring that the systems are
+      -- the same.
+      Result : Integer := 0;
+      Tol : Double_Float := Double_Float(Tolerance.all);
+      Temp : Solution_List := Sys1.Solutions;
+   begin
+      while not Is_Null(Temp) loop
+         declare
+            Cursor : constant Link_To_Solution := Head_Of(Temp);
+            S : Link_To_Solution := new Solution'(Cursor.all);
+            N : Natural;
+         begin
+            Standard_Complex_Solutions.Add(Sys2.Solutions, S.all, Tol, N);
+            if N = 0 then
+               Result := Result + 1;
+            else
+               Clear(S);
+            end if;
+            Temp := Tail_Of(Temp);
+         end;
+      end loop;
+      Sys2.Num_Solns := result + Sys2.Num_Solns;
+      return Int(Result);
+   end Add_Solutions;
+
    function Mixed_Volume_Algorithm
      (
       N         : in Natural; -- number of variables = number of polys
@@ -431,7 +463,8 @@ package body Cy2ada is
       -- Put(Sols);
   end Do_Homotopy;
 
-  procedure Filter_Solns ( P : in Link_To_Solved_System ; Tolerance : in Double_Ptr) is
+  procedure Filter_Solns ( P : in Link_To_Solved_System;
+                           Tolerance : in Double_Ptr) is
      Tmp : Solution_List := P.Solutions;
      Keepers : Solution_List;
      N : Integer := 0;

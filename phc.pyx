@@ -40,6 +40,7 @@ cdef extern int   get_num_solns (void* solved)
 cdef extern void  get_solution(void *solved, int n,
                                int* mult, double* info,
                                double* real, double*imag)
+cdef extern int   add_solutions(void *sys1, void* sys2, double* tolerance)
 cdef extern void  do_homotopy(void* start, void* target, int allow_clustering)
 cdef extern void  filter_solns(void* solved, double* tolerance)
 cdef extern void  polish_solns(void* solved)
@@ -331,7 +332,16 @@ cdef class PHCSystem:
             raise ValueError, 'System has not been solved yet.'
         polish_solns(self.solved_target)
         self.solutions = self.extract_solns(self.solved_target)
-        
+
+    def absorb(self, other, double tolerance=1.0E-06):
+        cdef void* other_sys = PHCSystem.get_solved(other) 
+        result = add_solutions(self.solved_target,
+                               other_sys,
+                               &tolerance)
+        if result:
+            self.solutions = self.extract_solns(self.solved_target)
+        return result
+            
     def solution_list(self, filter=True, double tolerance=1.0E-06):
         if self.solved_target == NULL:
             self.MVsolve(filter=filter, tolerance=tolerance)
