@@ -32,6 +32,7 @@ with Standard_Complex_Polynomials_io;    use Standard_Complex_Polynomials_io;
 with Standard_Complex_Poly_Strings;      use Standard_Complex_Poly_Strings;
 with Standard_Complex_Poly_Systems;      use Standard_Complex_Poly_Systems;
 with Standard_Complex_Poly_Systems_io;   use Standard_Complex_Poly_Systems_io;
+with Standard_Complex_Laur_Systems;      use Standard_Complex_Laur_Systems;
 with Floating_Mixed_Subdivisions;        use Floating_Mixed_Subdivisions;
 with Floating_Mixed_Subdivisions_io;     use Floating_Mixed_Subdivisions_io;
 with Standard_Complex_Solutions;         use Standard_Complex_Solutions;
@@ -45,6 +46,15 @@ with Drivers_For_Mixedvol_Algorithm;     use Drivers_For_Mixedvol_Algorithm;
 with Increment_and_Fix_Continuation;     use Increment_and_Fix_Continuation;
 with Standard_Homotopy;                  use Standard_Homotopy;
 with Continuation_Parameters;
+with Double_Double_Numbers;
+with DoblDobl_Complex_Numbers_Cv;
+with DoblDobl_Complex_Vectors_Cv;
+with DoblDobl_Complex_Laurentials;
+with DoblDobl_Complex_Laur_Systems;
+with DoblDobl_Complex_Solutions;
+with Dobldobl_Polynomial_Convertors;     use Dobldobl_Polynomial_Convertors;
+with Standard_Poly_Laur_Convertors;      use Standard_Poly_Laur_Convertors;
+with DoblDobl_Root_Refiners;             use DoblDobl_Root_Refiners;
 -- with Drivers_For_Poly_Continuation;
 -- with Drivers_For_Homotopy_Creation;
 
@@ -277,6 +287,38 @@ package body Cy2ada is
       end loop;
    end Get_Solution;
 
+   function Add_Solutions ( Sys1  : in Link_To_Solved_System;
+                            Sys2  : in Link_To_Solved_System;
+                            Tolerance : in Double_Ptr )
+                          return Int is
+      -- Adds solutions of Sys1 to the solution list of Sys2
+      -- if they are not already there (up to the given tolerance).
+      -- Returns the number of solutions added.
+      -- You are responsible for ensuring that the systems are
+      -- the same.
+      Result : Integer := 0;
+      Tol : Double_Float := Double_Float(Tolerance.all);
+      Temp : Solution_List := Sys1.Solutions;
+   begin
+      while not Is_Null(Temp) loop
+         declare
+            Cursor : constant Link_To_Solution := Head_Of(Temp);
+            S : Link_To_Solution := new Solution'(Cursor.all);
+            N : Natural;
+         begin
+            Standard_Complex_Solutions.Add(Sys2.Solutions, S.all, Tol, N);
+            if N = 0 then
+               Result := Result + 1;
+            else
+               Clear(S);
+            end if;
+            Temp := Tail_Of(Temp);
+         end;
+      end loop;
+      Sys2.Num_Solns := result + Sys2.Num_Solns;
+      return Int(Result);
+   end Add_Solutions;
+
    function Mixed_Volume_Algorithm
      (
       N         : in Natural; -- number of variables = number of polys
@@ -403,13 +445,15 @@ package body Cy2ada is
       Qsys   : Poly_Sys := Q.all.System.all;
       Sols   : Solution_List;
       Target : Complex_Number := Create(1.0);
-      A      : Complex_Number := Random1;
+      -- A      : Complex_Number := Random1;
+      A      : Complex_Number := Create(1.0);
    begin
       Copy(Q.all.Solutions, Sols);
       Set_Continuation_Parameter(Sols, Create(0.0));
       Standard_Homotopy.Create(Psys, Qsys, 2, A);
-      Continuation_Parameters.Tune(4);
-      Predictor_Path_Type := 2;
+      Continuation_Parameters.Tune(2);
+      --Continuation_Parameters.Tune(4);
+      --Predictor_Path_Type := 2;
       if Allow_Clustering > 0 then
          Tol_Endg_Distance := 0.0;
       end if;
@@ -419,13 +463,15 @@ package body Cy2ada is
       -- Put(Sols);
   end Do_Homotopy;
 
-  procedure Filter_Solns ( P : in Link_To_Solved_System ) is
+  procedure Filter_Solns ( P : in Link_To_Solved_System;
+                           Tolerance : in Double_Ptr) is
      Tmp : Solution_List := P.Solutions;
      Keepers : Solution_List;
      N : Integer := 0;
+     Tol : Double_Float := Double_Float(Tolerance.all);
   begin
      while not Is_Null(Tmp) loop
-        if not Is_Bad_Solution(Head_Of(Tmp)) then
+        if not Is_Bad_Solution(Head_Of(Tmp), Tol) then
            declare
               Ls : Link_to_Solution := new Solution'(Head_Of(Tmp).all);
            begin
@@ -440,22 +486,84 @@ package body Cy2ada is
      P.Num_Solns := N;
   end Filter_Solns;
 
-  function Is_Bad_Solution( Ls : in Link_To_Solution) return Boolean is
+  function Is_Bad_Solution( Ls : in Link_To_Solution; Tolerance : in Double_Float )
+                          return Boolean is
      use Continuation_Parameters;
      One : Complex_Number := Create(1.0);
+     Size : Double_Float;
   begin
---     if Ls.T /= One then
---        return True;
---     end if;
+     --Put("Filtering"); New_Line;
+     --Put("Tolerance: "); Put(Tolerance); New_Line;
+     if Ls.T /= One then
+        --Put("At infinity"); New_Line;
+        return True;
+     end if;
      for I in 1..Ls.N loop
-        if AbsVal(Ls.V(I)) < 10.0**(-6) then
+        Size := AbsVal(Ls.V(I));
+        --Put(Size);
+        if Size < Tolerance then
+           --Put(" Bad"); New_Line;
            return True;
         end if;
-        if AbsVal(Ls.V(I)) > 10.0**(6) then
+        if AbsVal(Ls.V(I)) > 1.0/Tolerance then
+           --Put(" Bad"); New_Line;
            return True;
         end if;
+        --Put(" Good"); New_Line;
      end loop;
      return False;
   end Is_Bad_Solution;
+
+  function DDSoln_To_Soln ( S : DoblDobl_Complex_Solutions.Solution )
+                  return Standard_Complex_Solutions.Solution is
+
+    result : Standard_Complex_Solutions.Solution(s.n);
+  begin
+    result.t := DoblDobl_Complex_Numbers_Cv.DoblDobl_Complex_To_Standard(s.t);
+    result.m := s.m;
+    result.v := DoblDobl_Complex_Vectors_Cv.DoblDobl_Complex_To_Standard(s.v);
+    result.err := Double_Double_Numbers.Hi_Part(S.err);
+    result.rco := Double_Double_Numbers.Hi_Part(S.rco);
+    result.res := Double_Double_Numbers.Hi_Part(S.res);
+    return result;
+  end DDSoln_To_Soln;
+
+  function DDSolnList_To_SolnList
+    ( l : DoblDobl_Complex_Solutions.Solution_List )
+    return Standard_Complex_Solutions.Solution_List is
+
+    result,result_last : Standard_Complex_Solutions.Solution_List;
+    tmp : DoblDobl_Complex_Solutions.Solution_List := l;
+
+    use DoblDobl_Complex_Solutions;
+
+  begin
+    while not Is_Null(tmp) loop
+      declare
+        ls : constant DoblDobl_Complex_Solutions.Link_to_Solution
+           := Head_Of(tmp);
+        ms : constant Standard_Complex_Solutions.Solution(ls.n)
+           := DDSoln_To_Soln(ls.all);
+      begin
+        Append(result,result_last,ms);
+      end;
+      tmp := Tail_Of(tmp);
+    end loop;
+    return result;
+  end DDSolnList_To_SolnList;
+
+  procedure Polish_Solns ( P : in Link_To_Solved_System ) is
+     Q  : constant Laur_Sys := Polynomial_To_Laurent_System(P.System.all);
+     QQ : constant DoblDobl_Complex_Laur_Systems.Laur_Sys
+        := Standard_Laur_Sys_to_DoblDobl_Complex(Q);
+     S  : DoblDobl_Complex_Solutions.Solution_List
+        := DoblDobl_Complex_Solutions.Create(P.Solutions);
+  begin
+     -- Put(P.Solutions);
+     DoblDobl_Root_Refiner(QQ, S);
+     Clear(P.Solutions);
+     P.Solutions := DDSolnList_To_SolnList(S);
+     -- Put(P.Solutions);
+  end Polish_Solns;
 
 end Cy2ada;

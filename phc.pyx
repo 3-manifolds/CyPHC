@@ -35,13 +35,15 @@ cdef extern void* mixed_volume_algorithm (int n, int m,
                                          int* supports)
 cdef extern void* new_solved_system(int n)
 cdef extern void* get_poly(void* solved, int n)
-cdef extern void set_poly(void* solved, int n, void* p)
-cdef extern int get_num_solns (void* solved)
-cdef extern void get_solution(void *solved, int n,
-                              int* mult, double* info,
-                              double* real, double*imag)
-cdef extern void do_homotopy(void *start, void *target, int allow_clustering)
-cdef extern void filter_solns(void *solved)
+cdef extern void  set_poly(void* solved, int n, void* p)
+cdef extern int   get_num_solns (void* solved)
+cdef extern void  get_solution(void *solved, int n,
+                               int* mult, double* info,
+                               double* real, double*imag)
+cdef extern int   add_solutions(void *sys1, void* sys2, double* tolerance)
+cdef extern void  do_homotopy(void* start, void* target, int allow_clustering)
+cdef extern void  filter_solns(void* solved, double* tolerance)
+cdef extern void  polish_solns(void* solved)
 
 cdef class PHCContext:
 
@@ -306,7 +308,7 @@ cdef class PHCSystem:
         free(real)
         return solns
         
-    def MVsolve(self, filter=True):
+    def MVsolve(self, filter=True, double tolerance=1.0E-06):
         if self.solved_starter == NULL:
             self.build_starter()
         self.solved_target = new_solved_system(len(self))
@@ -314,7 +316,7 @@ cdef class PHCSystem:
             set_poly(self.solved_target, n+1, PHCPoly.get_pointer(P))
         do_homotopy(self.solved_starter, self.solved_target, 0)
         if filter:
-            filter_solns(self.solved_target)
+            filter_solns(self.solved_target, &tolerance)
         self.solutions = self.extract_solns(self.solved_target)
 
     def HCsolve(self, start_system, allow_clustering=0):
@@ -325,9 +327,24 @@ cdef class PHCSystem:
         do_homotopy(start, self.solved_target, allow_clustering)
         self.solutions = self.extract_solns(self.solved_target)
 
-    def solution_list(self, filter=True):
+    def polish(self):
         if self.solved_target == NULL:
-            self.MVsolve(filter)
+            raise ValueError, 'System has not been solved yet.'
+        polish_solns(self.solved_target)
+        self.solutions = self.extract_solns(self.solved_target)
+
+    def absorb(self, other, double tolerance=1.0E-06):
+        cdef void* other_sys = PHCSystem.get_solved(other) 
+        result = add_solutions(self.solved_target,
+                               other_sys,
+                               &tolerance)
+        if result:
+            self.solutions = self.extract_solns(self.solved_target)
+        return result
+            
+    def solution_list(self, filter=True, double tolerance=1.0E-06):
+        if self.solved_target == NULL:
+            self.MVsolve(filter=filter, tolerance=tolerance)
         return self.solutions
 
 class ParametrizedSystem:
@@ -366,13 +383,13 @@ class ParametrizedSystem:
         ring = self.base_ring
         return PHCSystem(ring, polys)
 
-    def start(self, param_value):
+    def start(self, param_value, double tolerance):
         """
         Solve the specialized system from scratch, using the mixed
         volume algorithm.
         """
         system = self.specialize(param_value)
-        system.MVsolve()
+        system.MVsolve(tolerance=tolerance)
         return system 
         
     def transport(self, start, target_param, allow_collisions=False):
