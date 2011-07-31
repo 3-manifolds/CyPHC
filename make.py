@@ -15,9 +15,11 @@ gnatbind = which('gnatbind')
 # Customize fallbacks for your environments.
 if sys.platform == 'darwin':
     if not gnatmake:
-        gnatmake = '/usr/local/ada-4.3/bin/gnatmake'
+        gnatmake = '/opt/gnat-gpl-2009/bin/gnatmake'
+#        gnatmake = '/usr/local/ada-4.3/bin/gnatmake'
     if not gnatbind:
-        gnatbind = '/usr/local/ada-4.3/bin/gnatbind'
+        gnatbind = '/opt/gnat-gpl-2009/bin/gnatbind'
+#        gnatbind = '/usr/local/ada-4.3/bin/gnatbind'
     
 if gnatmake is None or gnatbind is None:
     print "gnat is not in your path"
