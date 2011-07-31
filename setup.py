@@ -29,7 +29,8 @@ Adaobjs = [path.join('PHCbuild', 'cy2ada')]
 
 if sys.platform == 'darwin':
     if not gnatlink:
-        gnatlink= '/usr/local/ada-4.3/bin/gnatlink'
+        gnatlink= '/opt/gnat-gpl-2009/bin/gnatlink'
+#        gnatlink= '/usr/local/ada-4.3/bin/gnatlink'
     Adaobjs += ['/Library/Frameworks/Python.framework/Versions/2.7/lib/libpython2.7.dylib']
 
 # Use the gnatlink command in place of the gcc linker

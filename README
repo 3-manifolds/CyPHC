@@ -5,6 +5,9 @@ If you have a copy of the PHC source files, create a symbolic link
 named PHCroot pointint to the PHC root directory.  Otherwise, run the
 script getPHC.sh to download the source and create the symbolic link.
 
-Run python make.py to build, python make.py install to install.
+Install takes two steps at the moment::
+
+python make.py extension
+python setup.py install
 
 WARNING: Requires Cython >= 13.0
