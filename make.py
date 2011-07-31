@@ -1,3 +1,5 @@
+darwin_gnat_fallback_dir = '/opt/gnat-gpl-2009/bin/'
+
 from os import environ
 import sys
 from subprocess import Popen, PIPE, call
@@ -8,39 +10,38 @@ def which(executable):
     if execpath:
         return execpath.strip()
 
-# Find gnats.
-gnatmake = which('gnatmake')
-gnatbind = which('gnatbind')
+if __name__ == '__main__':
+    # Find gnats.
+    gnatmake = which('gnatmake')
+    gnatbind = which('gnatbind')
 
-# Customize fallbacks for your environments.
-if sys.platform == 'darwin':
-    if not gnatmake:
-        gnatmake = '/opt/gnat-gpl-2009/bin/gnatmake'
-#        gnatmake = '/usr/local/ada-4.3/bin/gnatmake'
-    if not gnatbind:
-        gnatbind = '/opt/gnat-gpl-2009/bin/gnatbind'
-#        gnatbind = '/usr/local/ada-4.3/bin/gnatbind'
+    # Customize fallbacks for your environments.
+    if sys.platform == 'darwin':
+        if not gnatmake:
+            gnatmake = darwin_gnat_fallback_dir + '/gnatmake'
+        if not gnatbind:
+            gnatbind = darwin_gnat_fallback_dir + '/gnatbind'
     
-if gnatmake is None or gnatbind is None:
-    print "gnat is not in your path"
-    sys.exit()
+    if gnatmake is None or gnatbind is None:
+        print "gnat is not in your path"
+        sys.exit()
 
-# Set make variables according to platform.
+    # Set make variables according to platform.
 
-args = [
-    'make',
-    'GNATMAKE=%s'%gnatmake,
-    'GNATBIND=%s'%gnatbind,
-    ] + sys.argv[1:]
+    args = [
+        'make',
+        'GNATMAKE=%s'%gnatmake,
+        'GNATBIND=%s'%gnatbind,
+        ] + sys.argv[1:]
 
-if sys.platform == 'darwin':
-    args.append('GNATFLAGS=-gnat95 -gnatv -O3 -gnatp -gnatf ')
-elif sys.platform == 'linux2':
-    args += ['GNATFLAGS=-gnat95 -gnatv -O3 -gnatp -gnatf -fPIC ',
-             'GCCFLAGS=-fPIC' 
-             ]
-else:
-    print 'Unknown platform'
-    sys.exit()
+    if sys.platform == 'darwin':
+        args.append('GNATFLAGS=-gnat95 -gnatv -O3 -gnatp -gnatf ')
+    elif sys.platform == 'linux2':
+        args += ['GNATFLAGS=-gnat95 -gnatv -O3 -gnatp -gnatf -fPIC ',
+                 'GCCFLAGS=-fPIC' 
+                 ]
+    else:
+        print 'Unknown platform'
+        sys.exit()
     
-call(args)
+    call(args)
