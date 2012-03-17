@@ -1,4 +1,4 @@
-darwin_gnat_fallback_dir = '/opt/gnat-gpl-2009/bin/'
+darwin_gnat_fallback_dir = '/usr/local/gnat/bin'
 
 from os import environ
 import sys

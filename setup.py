@@ -29,10 +29,13 @@ Adaobjs = [path.join('PHCbuild', 'cy2ada')]
 
 if sys.platform == 'darwin':
     if not gnatlink:
-        from make import darwin_fallback_dir
-        gnatlink= darwin_fallback_dir + '/gnatlink'
-    Adaobjs += ['/Library/Frameworks/Python.framework/Versions/2.7/lib/libpython2.7.dylib']
-
+        from make import darwin_gnat_fallback_dir
+        gnatlink= darwin_gnat_fallback_dir + '/gnatlink'
+    try:
+        import sage
+        Adaobjs += ['/Users/culler/Sage/sage-4.8/local/lib/libpython2.6.dylib']
+    except ImportError:
+        Adaobjs += ['/Library/Frameworks/Python.framework/Versions/2.7/lib/libpython2.7.dylib']
 # Use the gnatlink command in place of the gcc linker
 environ['LDSHARED'] = gnatlink
 environ['LDFLAGS'] = '-C -shared'
