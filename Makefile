@@ -17,6 +17,7 @@ INCLULIBS=-I$(PHCAda)/System -I$(PHCAda)/System/Unix_Timer \
  -I$(PHCAda)/Math_Lib/Numbers -I$(PHCAda)/Math_Lib/Vectors \
  -I$(PHCAda)/Math_Lib/Matrices -I$(PHCAda)/Math_Lib/Polynomials \
  -I$(PHCAda)/Math_Lib/Supports -I$(PHCAda)/Math_Lib/QD \
+ -I$(PHCAda)/Math_Lib/Reduction -I$(PHCAda)/Math_Lib/Functions \
  -I$(PHCAda)/Homotopy -I$(PHCAda)/Newton -I$(PHCAda)/Continuation \
  -I$(PHCAda)/Root_Counts/Product -I$(PHCAda)/Root_Counts/Simpomials \
  -I$(PHCAda)/Root_Counts/Implift -I$(PHCAda)/Root_Counts/Stalift \
@@ -28,7 +29,9 @@ INCLULIBS=-I$(PHCAda)/System -I$(PHCAda)/System/Unix_Timer \
  -I$(PHCAda)/Components/Factorization -I$(PHCAda)/Components/Decomposition \
  -I$(PHCAda)/Components/Solver \
  -I$(PHCAda)/Differentials -I$(PHCAda)/Tasking -I$(PHCAda)/Main \
- -I$(PHCAda)/CtoPHC/Funky -I$(PHCAda)/CtoPHC/State
+ -I$(PHCAda)/CtoPHC/Funky -I$(PHCAda)/CtoPHC/State \
+ -I$(PHCAda)/Deformations/Solutions -I$(PHCAda)/Deformations/Newton \
+ -I$(PHCAda)/Deformations/Continuation -I$(PHCAda)/Deformations/Homotopy
 
 MVRoot=$(PHCRoot)/Ada/Root_Counts/MixedVol
 
