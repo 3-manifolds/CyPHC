@@ -43,7 +43,7 @@ with Floating_Lifting_Utilities;
 with Cell_Stack;                         use Cell_Stack;
 with Mixedvol_Algorithm;                 use Mixedvol_Algorithm;
 with Drivers_For_Mixedvol_Algorithm;     use Drivers_For_Mixedvol_Algorithm;
-with Increment_and_Fix_Continuation;     use Increment_and_Fix_Continuation;
+with Standard_IncFix_Continuation;    use Standard_IncFix_Continuation;
 with Standard_Homotopy;                  use Standard_Homotopy;
 with Continuation_Parameters;
 with Double_Double_Numbers;
@@ -60,7 +60,7 @@ with DoblDobl_Root_Refiners;             use DoblDobl_Root_Refiners;
 
 package body Cy2ada is
 
-   procedure Reset_Symbols( Max : in Integer ) is
+   procedure Reset_Symbols( Max : in natural32 ) is
       -- Free the current symbol table and create an empty one of size Max.
    begin
       Symbol_Table.Clear;
@@ -74,7 +74,7 @@ package body Cy2ada is
       Symbol_Table.Add_String(S);
    end Add_Symbol;
 
-   function New_Poly ( N : in Integer;
+   function New_Poly ( N : in natural32;
                        Input_String : in Chars_Ptr;
                        Return_Code : in Int_Ptr)
                      return Poly is
@@ -100,7 +100,7 @@ package body Cy2ada is
    end Free_Poly;
 
    function Is_Null_Poly( P : Poly )
-                        return integer is
+                        return integer32 is
       -- Test if a PHC Poly is null.
    begin
       if P = Null_Poly Then
@@ -110,27 +110,27 @@ package body Cy2ada is
    end Is_Null_Poly;
 
    function Num_Unknowns ( P : in Poly )
-                         return Natural is
+                         return natural32 is
       -- Return the number of variables of a PHC Poly.
    begin
       return Number_Of_Unknowns(P);
    end Num_Unknowns;
 
    function Num_Terms ( P : in Poly )
-                      return Natural is
+                      return natural32 is
       -- Return the number of terms in a PHC Poly.
    begin
       return Number_Of_Terms(P);
    end Num_Terms;
 
-   function Degrees_From_C(Ints : in Int_Ptr; N : in Integer)
+   function Degrees_From_C(Ints : in Int_Ptr; N : in natural32)
                           return Degrees is
       -- Convert a C array of ints to an Ada vector of Naturals.
       Ptr : Int_Ptr := Ints;
-      Result : Degrees := new Standard_Natural_Vectors.Vector'(1..N => 0);
+      Result : Degrees := new Standard_Natural_Vectors.Vector'(1..Integer32(N) => 0);
       begin
          for K in 1..N loop
-            Result(K) := Integer( Ptr.all );
+            Result(Integer32(K)) := natural32( Ptr.all );
             Increment(Ptr);
          end loop;
          return Result;
@@ -142,7 +142,7 @@ package body Cy2ada is
       -- Get the coefficient with the given multi-degree from a Poly.
       D    : Int_Ptr    := Degs;
       C    : Double_Ptr := Res;
-      Dim  : Integer    := Number_Of_Unknowns(P);
+      Dim  : natural32    := Number_Of_Unknowns(P);
       Z    : Complex_Number;
    begin
       Z := Coeff(P, Degrees_From_C(D, Dim));
@@ -159,11 +159,11 @@ package body Cy2ada is
       D : Int_Ptr := Degs;
       R : Double_Ptr := Reals;
       I : Double_Ptr := Imags;
-      Dim : Integer := Number_Of_Unknowns(P);
+      Dim : natural32 := Number_Of_Unknowns(P);
       procedure Visit_Term  ( T : in Term; Continue : out Boolean ) is
       begin
          for K in 1..Dim loop
-            D.all := int(T.Dg(K));
+            D.all := int(T.Dg(Integer32(K)));
             Increment(D);
          end loop;
          R.all := double(REAL_PART(T.cf));
@@ -184,13 +184,13 @@ package body Cy2ada is
       R_Cursor : Double_Ptr := X_Real;
       I_Cursor : Double_Ptr := X_Imag;
       Y_Cursor : Double_Ptr := Y;
-      Dim      : Integer := Number_Of_Unknowns(P);
+      Dim      : natural32 := Number_Of_Unknowns(P);
       X        : Standard_Complex_Vectors.Vector
-               := Standard_Complex_Vectors.Vector'( 1..Dim => Create(0.0) );
+               := Standard_Complex_Vectors.Vector'( 1..Integer32(Dim) => Create(0.0) );
       Value    : Complex_Number;
    begin
       for K in 1..Dim loop
-         X(K) := Create(Double_Float(R_Cursor.all),
+         X(Integer32(K)) := Create(Double_Float(R_Cursor.all),
                         Double_Float(I_Cursor.all));
          Increment(R_Cursor);
          Increment(I_Cursor);
@@ -204,7 +204,7 @@ package body Cy2ada is
    function Specialize_Poly (P      : in Poly;
                              X_Real : in Double_Ptr;
                              X_Imag : in Double_Ptr;
-                             N      : in Integer) return Poly is
+                             N      : in integer32) return Poly is
       -- Specialize one variable of a Poly, returning a Poly with that variable gone.
       X : Complex_Number := Create(Double_Float(X_Real.all),
                                    Double_Float(X_Imag.all));
@@ -228,44 +228,44 @@ package body Cy2ada is
       Free(S);
    end Free_String;
 
-   function New_Solved_System (N : in Natural) return Link_To_Solved_System is
+   function New_Solved_System (N : in natural32) return Link_To_Solved_System is
       Result : Link_To_Solved_System;
    begin
       Result := new Solved_System;
       Result.all.Num_Solns := 0;
-      Result.all.System := new Poly_Sys(1..N);
+      Result.all.System := new Poly_Sys(1..Integer32(N));
       return Result;
    end New_Solved_System;
 
    function Get_Poly ( Sys : in Link_To_Solved_System;
-                       Index : in Natural )
+                       Index : in natural32 )
                      return Poly is
       PS : Solved_System := Sys.all;
    begin
-      return PS.System(Index);
+      return PS.System(Integer32(Index));
    end Get_Poly;
 
    procedure Set_Poly( Sys   : in Link_To_Solved_System;
-                       Index : in Integer;
+                       Index : in integer32;
                        P     : in Poly ) is
       PS : Solved_System := Sys.all;
    begin
       PS.System(Index) := P;
    end Set_Poly;
 
-   function Get_Num_Solns (Sys : in Link_To_Solved_System) return Int is
+   function Get_Num_Solns (Sys : in Link_To_Solved_System) return natural32 is
    begin
-      return Int(Sys.all.Num_Solns);
+      return natural32(Sys.all.Num_Solns);
    end Get_Num_Solns;
 
    procedure Get_Solution ( Sys : in Link_To_Solved_System;
-                            Index : in Natural;
+                            Index : in natural32;
                             Mult : in Int_Ptr;
                             Info : in Double_Ptr;
                             Real : in Double_Ptr;
                             Imag : in Double_Ptr ) is
       Solns    : Solution_Array := Create(Sys.all.Solutions); -- List -> Array
-      S        : Solution := Solns(1+Index).all; -- starts at 0 on python side
+      S        : Solution := Solns(1+Integer32(Index)).all; -- starts at 0 on python side
       M        : Int_Ptr := Mult;
       Info_Ptr : Double_Ptr := Info;
       Real_Ptr : Double_Ptr := Real;
@@ -290,13 +290,13 @@ package body Cy2ada is
    function Add_Solutions ( Sys1  : in Link_To_Solved_System;
                             Sys2  : in Link_To_Solved_System;
                             Tolerance : in Double_Ptr )
-                          return Int is
+                          return natural32 is
       -- Adds solutions of Sys1 to the solution list of Sys2
       -- if they are not already there (up to the given tolerance).
       -- Returns the number of solutions added.
       -- You are responsible for ensuring that the systems are
       -- the same.
-      Result : Integer := 0;
+      Result : natural32 := 0;
       Tol : Double_Float := Double_Float(Tolerance.all);
       Temp : Solution_List := Sys1.Solutions;
    begin
@@ -304,7 +304,7 @@ package body Cy2ada is
          declare
             Cursor : constant Link_To_Solution := Head_Of(Temp);
             S : Link_To_Solution := new Solution'(Cursor.all);
-            N : Natural;
+            N : natural32;
          begin
             Standard_Complex_Solutions.Add(Sys2.Solutions, S.all, Tol, N);
             if N = 0 then
@@ -315,14 +315,14 @@ package body Cy2ada is
             Temp := Tail_Of(Temp);
          end;
       end loop;
-      Sys2.Num_Solns := result + Sys2.Num_Solns;
-      return Int(Result);
+      Sys2.Num_Solns := Result + Sys2.Num_Solns;
+      return natural32(Result);
    end Add_Solutions;
 
    function Mixed_Volume_Algorithm
      (
-      N         : in Natural; -- number of variables = number of polys
-      M         : in Natural; -- total size of support
+      N         : in natural32; -- number of variables = number of polys
+      M         : in natural32; -- total size of support
       Indices   : in Int_Ptr;
       Sizes     : in Int_Ptr;
       Supports  : in Int_Ptr
@@ -330,25 +330,25 @@ package body Cy2ada is
       Index_Ptr : Int_Ptr := Indices;
       Size_Ptr  : Int_Ptr := Sizes;
       Supp_Ptr  : Int_Ptr := Supports;
-      R         : Natural;
+      R         : natural32;
       Mix,Perm  : Standard_Integer_Vectors.Link_to_Vector;
-      Ind       : Standard_Integer_Vectors.Vector(1..N);
-      Cnt       : Standard_Integer_Vectors.Vector(1..N);
-      Supp      : Standard_Integer_Vectors.Vector(1..N*M);
+      Ind       : Standard_Integer_Vectors.Vector(1..integer32(N));
+      Cnt       : Standard_Integer_Vectors.Vector(1..integer32(N));
+      Supp      : Standard_Integer_Vectors.Vector(1..integer32(N*M));
       Sub       : Mixed_Subdivision;
-      Mixvol    : Natural;
-      Q         : Link_To_Poly_Sys := new Poly_Sys(1..N);
+      Mixvol    : natural32;
+      Q         : Link_To_Poly_Sys := new Poly_Sys(1..integer32(N));
       Qsols     : Solution_List;
       Result    : Link_To_Solved_System := New Solved_System;
    begin
-      for I in 1..N loop
-         Ind(I) := Integer(Index_Ptr.all);
-         Cnt(I) := Integer(Size_Ptr.all);
+      for I in 1..Integer32(N) loop
+         Ind(I) := integer32(Index_Ptr.all);
+         Cnt(I) := integer32(Size_Ptr.all);
          Increment(Index_Ptr);
          Increment(Size_Ptr);
       end loop;
-      for I in 1..N*M loop
-         Supp(I) := Integer(Supp_Ptr.all);
+      for I in 1..integer32(N*M) loop
+         Supp(integer32(I)) := integer32(Supp_Ptr.all);
          Increment(Supp_Ptr);
       end loop;
       -- Put("Computing mixed volume"); New_Line;
@@ -359,7 +359,7 @@ package body Cy2ada is
             := Floating_Lifting_Utilities.Lifted_Supports(mix'last,sub);
       begin
          -- Put("Solving the random system:"); New_Line;
-         Random_Coefficient_System(N, Mix.all, LS, Sub, Q.all, Qsols);
+         Random_Coefficient_System(0, Integer32(N), Mix.all, LS, Sub, Q.all, Qsols);
          -- Put(Q.all); New_Line;
          -- Put(Qsols); New_Line;
       end;
@@ -375,18 +375,18 @@ package body Cy2ada is
 
    procedure Compute_Mixed_Volume
      (
-      N        : in  Natural; -- number of variables = number of polys
-      M        : in  Natural; -- total size of support
+      N        : in  natural32; -- number of variables = number of polys
+      M        : in  natural32; -- total size of support
       Ind      : in  Standard_Integer_Vectors.Vector;
       Cnt      : in  Standard_Integer_Vectors.Vector;
       Supp     : in  Standard_Integer_Vectors.Vector;
       Stlb     : in  double_float;
-      R        : out natural;
+      R        : out natural32;
       Mix,Perm : out Standard_Integer_Vectors.Link_to_Vector;
       Sub      : out Mixed_Subdivision;
-      Mixvol   : out natural ) is
+      Mixvol   : out natural32 ) is
 
-      Size,Nb     : natural;
+      Size,Nb     : natural32;
       Mtype,Idx   : Standard_Integer_Vectors.Link_to_Vector;
       Vtx         : Standard_Integer_VecVecs.Link_to_VecVec;
       Lift        : Standard_Floating_Vectors.Link_to_Vector;
@@ -402,8 +402,9 @@ package body Cy2ada is
       -- Put("Support: ");
       -- Standard_Integer_Vectors_IO.Put(Supp); New_Line;
 
-      mv(N, M, Ind, Cnt, Supp, Stlb,
-         R, Mtype, Perm, Idx, Vtx, Lift, Size, Nb, Cells, Mixvol);
+      mv(integer32(N), integer32(M), Ind, Cnt, Supp, Stlb,
+         integer32(R), Mtype, Perm, Idx, Vtx, Lift, integer32(Size),
+	 integer32(Nb), Cells, Mixvol);
       -- Put("The mixed volume is ");  Put(mixvol, 1);  Put_Line(".");
       -- Put("There are ");  Put(nb, 1);  Put_Line(" mixed cells.");
       -- Put_Line("Creating a regular mixed-cell configuration ...");
@@ -412,15 +413,17 @@ package body Cy2ada is
       then
          -- Put("Using the permutation for mixed cells."); New_Line;
          Create_Mixed_Cell_Configuration
-        (N, R, Size, Nb, Mtype, Perm, Vtx, Lift, Cells, Sub );
+	   (Integer32(N), Integer32(R), Integer32(Size), Integer32(Nb),
+	    Mtype, Perm, Vtx, Lift, Cells, Sub );
       else
          -- Put("Not using the  permutation for mixed cells.");New_Line;
          Create_Mixed_Cell_Configuration
-        (N, R, Size, Nb, Mtype, Vtx, Lift, Cells, Sub );
+	   (Integer32(N), Integer32(R), Integer32(Size), Integer32(Nb),
+	    Mtype, Vtx, Lift, Cells, Sub );
       end if;
-      Mix := new Standard_Integer_Vectors.Vector( 1..R );
+      Mix := new Standard_Integer_Vectors.Vector( 1..Integer32(R) );
       -- Put("Mix: ");
-      for I in 1..R loop
+      for I in 1..Integer32(R) loop
          Mix(I ) := Mtype(I-1);
          -- Put(Mix(I),1); Put(", ");
       end loop;
@@ -438,7 +441,7 @@ package body Cy2ada is
    procedure Do_Homotopy (
                           Q : in Link_To_Solved_System;  -- solved start system
                           P : in Link_To_Solved_System;  -- unsolved target system
-                          Allow_Clustering : in Integer  -- collisions allowed if > 0
+                          Allow_Clustering : in integer32  -- collisions allowed if > 0
                          ) is
       use Continuation_Parameters;
       Psys   : Poly_Sys := P.all.System.all;
@@ -467,7 +470,7 @@ package body Cy2ada is
                            Tolerance : in Double_Ptr) is
      Tmp : Solution_List := P.Solutions;
      Keepers : Solution_List;
-     N : Integer := 0;
+     N : integer32 := 0;
      Tol : Double_Float := Double_Float(Tolerance.all);
   begin
      while not Is_Null(Tmp) loop
@@ -483,7 +486,7 @@ package body Cy2ada is
      end loop;
      Clear(P.Solutions);
      P.Solutions := Keepers;
-     P.Num_Solns := N;
+     P.Num_Solns := natural32(N);
   end Filter_Solns;
 
   function Is_Bad_Solution( Ls : in Link_To_Solution; Tolerance : in Double_Float )

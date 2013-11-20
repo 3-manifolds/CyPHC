@@ -37,6 +37,7 @@ if sys.platform == 'darwin':
     except ImportError:
         Adaobjs += ['/Library/Frameworks/Python.framework/Versions/2.7/lib/libpython2.7.dylib']
 # Use the gnatlink command in place of the gcc linker
+# NOTE: newer versions of gnatlink do not accept the -C flag.
 environ['LDSHARED'] = gnatlink
 environ['LDFLAGS'] = '-C -shared'
 
