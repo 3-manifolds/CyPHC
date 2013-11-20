@@ -7,12 +7,12 @@ script getPHC.sh to download the source and create the symbolic link.
 
 Install takes two steps at the moment::
 
-python make.py extension
+python make.py
 python setup.py install
 
 WARNING: Requires Cython >= 13.0
 
 HINT: On OS X, if gnat is not in your path, edit the first line of make.py
 
-HINT: If using a very recent version of gnat, e.g. gnat 2011, you
+HINT: If using a recent version of gnat, e.g. gnat 2011, you
 need to remove the "-C" flag from LDFLAGS in setup.py

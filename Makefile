@@ -13,25 +13,47 @@ PHCRoot=../PHCsource
 PHCLib=$(PHCRoot)/Lib
 PHCAda=$(PHCRoot)/Ada
 BIN=$(PHCRoot)/bin
-INCLULIBS=-I$(PHCAda)/System -I$(PHCAda)/System/Unix_Timer \
- -I$(PHCAda)/Math_Lib/Numbers -I$(PHCAda)/Math_Lib/Vectors \
- -I$(PHCAda)/Math_Lib/Matrices -I$(PHCAda)/Math_Lib/Polynomials \
- -I$(PHCAda)/Math_Lib/Supports -I$(PHCAda)/Math_Lib/QD \
- -I$(PHCAda)/Math_Lib/Reduction -I$(PHCAda)/Math_Lib/Functions \
- -I$(PHCAda)/Homotopy -I$(PHCAda)/Newton -I$(PHCAda)/Continuation \
- -I$(PHCAda)/Root_Counts/Product -I$(PHCAda)/Root_Counts/Simpomials \
- -I$(PHCAda)/Root_Counts/Implift -I$(PHCAda)/Root_Counts/Stalift \
- -I$(PHCAda)/Root_Counts/Dynlift -I$(PHCAda)/Root_Counts/Symmetry \
- -I$(PHCAda)/Root_Counts/MixedVol -I$(PHCAda)/Root_Counts/Puiseux \
- -I$(PHCAda)/Schubert/SAGBI -I$(PHCAda)/Schubert/Pieri \
+INCLULIBS=-I$(PHCAda)/System \
+ -I$(PHCAda)/System/Unix_Timer \
+ -I$(PHCAda)/Math_Lib/Divisors \
+ -I$(PHCAda)/Math_Lib/Functions \
+ -I$(PHCAda)/Math_Lib/Matrices \
+ -I$(PHCAda)/Math_Lib/Numbers \
+ -I$(PHCAda)/Math_Lib/Polynomials \
+ -I$(PHCAda)/Math_Lib/QD \
+ -I$(PHCAda)/Math_Lib/Reduction\
+ -I$(PHCAda)/Math_Lib/Supports\
+ -I$(PHCAda)/Math_Lib/Vectors \
+ -I$(PHCAda)/Root_Counts/Binomials \
+ -I$(PHCAda)/Root_Counts/Dynlift \
+ -I$(PHCAda)/Root_Counts/Implift \
+ -I$(PHCAda)/Root_Counts/MixedVol \
+ -I$(PHCAda)/Root_Counts/Product \
+ -I$(PHCAda)/Root_Counts/Puiseux \
+ -I$(PHCAda)/Root_Counts/Simpomials \
+ -I$(PHCAda)/Root_Counts/Stalift \
+ -I$(PHCAda)/Root_Counts/Symmetry \
+ -I$(PHCAda)/Schubert/SAGBI \
+ -I$(PHCAda)/Schubert/Pieri \
  -I$(PHCAda)/Schubert/Induction \
- -I$(PHCAda)/Components/Samplers -I$(PHCAda)/Components/Interpolators \
- -I$(PHCAda)/Components/Factorization -I$(PHCAda)/Components/Decomposition \
+ -I$(PHCAda)/Components/Decomposition \
+ -I$(PHCAda)/Components/Factorization \
+ -I$(PHCAda)/Components/Interpolators \
+ -I$(PHCAda)/Components/Samplers \
  -I$(PHCAda)/Components/Solver \
- -I$(PHCAda)/Differentials -I$(PHCAda)/Tasking -I$(PHCAda)/Main \
- -I$(PHCAda)/CtoPHC/Funky -I$(PHCAda)/CtoPHC/State \
- -I$(PHCAda)/Deformations/Solutions -I$(PHCAda)/Deformations/Newton \
- -I$(PHCAda)/Deformations/Continuation -I$(PHCAda)/Deformations/Homotopy
+ -I$(PHCAda)/Components/Tropical \
+ -I$(PHCAda)/Tasking \
+ -I$(PHCAda)/Main \
+ -I$(PHCAda)/CtoPHC/Funky \
+ -I$(PHCAda)/CtoPHC/State \
+ -I$(PHCAda)/Deformations/Continuation \
+ -I$(PHCAda)/Deformations/Curves \
+ -I$(PHCAda)/Deformations/End_Games \
+ -I$(PHCAda)/Deformations/Homotopy \
+ -I$(PHCAda)/Deformations/Newton \
+ -I$(PHCAda)/Deformations/Solutions \
+ -I$(PHCAda)/Deformations/Sweep \
+ -I$(PHCAda)/Deformations/Trackers \
 
 MVRoot=$(PHCRoot)/Ada/Root_Counts/MixedVol
 
