@@ -1,4 +1,5 @@
 darwin_gnat_fallback_dir = '/usr/local/gnat/bin'
+#darwin_gnat_fallback_dir = '/pkgs/gnat/bin'
 
 from os import environ
 import sys
@@ -35,7 +36,7 @@ if __name__ == '__main__':
         ] + sys.argv[1:]
 
     if sys.platform == 'darwin':
-        args.append('GNATFLAGS=-gnat95 -gnatv -O3 -gnatp -gnatf ')
+        args.append('GNATFLAGS=-gnat05 -gnatv -O3 -gnatp -gnatf ')
     elif sys.platform == 'linux2':
         args += ['GNATFLAGS=-gnat05 -gnatv -O3 -gnatp -gnatf -fPIC ',
                  'GCCFLAGS=-fPIC' 

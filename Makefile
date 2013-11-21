@@ -72,7 +72,7 @@ phc.so: b_cy2ada.c phc.pyx
 
 b_cy2ada.c: PHCbuild
 	cd PHCbuild; $(GNATMAKE) -c $(INCLULIBS) $(GNATFLAGS) ../cy2ada
-	$(GNATBIND) -n -C PHCbuild/cy2ada
+	$(GNATBIND) -n PHCbuild/cy2ada
 	-rm phc.c
 
 PHCbuild:
