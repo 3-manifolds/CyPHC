@@ -68,11 +68,11 @@ MVOBJ=$(MVRoot)/cell_stack.o $(MVRoot)/form_lp.o $(MVRoot)/index_tree_lp.o \
 #phc.so: b_cy2ada.c phc.pyx mv_glue.o
 
 phc.so: b_cy2ada.c phc.pyx
-	python setup.py build_ext --inplace
+	python setup.py build_ext
 
 b_cy2ada.c: PHCbuild
 	cd PHCbuild; $(GNATMAKE) -c $(INCLULIBS) $(GNATFLAGS) ../cy2ada
-	$(GNATBIND) -n -C PHCbuild/cy2ada
+	$(GNATBIND) -n PHCbuild/cy2ada
 	-rm phc.c
 
 PHCbuild:
