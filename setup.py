@@ -35,7 +35,8 @@ if sys.platform == 'darwin':
 # Use the gnatlink command in place of the gcc linker
 # NOTE: newer versions of gnatlink do not accept the -C flag.
 environ['LDSHARED'] = gnatlink
-environ['LDFLAGS'] = '-C -shared'
+#environ['LDFLAGS'] = '-C -shared'
+environ['LDFLAGS'] = '-shared'
 
 src = ['phc.pyx']
 inc = [path.join('PHCsource','Ada','Root_Counts','MixedVol')]
