@@ -32,7 +32,7 @@ if __name__ == '__main__':
     args = [
         'make',
         'GNATMAKE=%s'%gnatmake,
-        'GNATBIND=%s'%gnatbind,
+        'GNATBIND=%s -shared'%gnatbind,
         ] + sys.argv[1:]
 
     if sys.platform == 'darwin':
