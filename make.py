@@ -33,6 +33,7 @@ if __name__ == '__main__':
         'make',
         'GNATMAKE=%s'%gnatmake,
         'GNATBIND=%s -shared'%gnatbind,
+        'PYTHON=%s'%sys.executable, 
         ] + sys.argv[1:]
 
     if sys.platform == 'darwin':

@@ -1,13 +1,9 @@
 # These variables are set in make.py, to allow the
 # Makefile to be platform independent.
-#For OS X
-#GNATMAKE=/usr/local/ada-4.3/bin/gnatmake
-#GNATBIND=/usr/local/ada-4.3/bin/gnatbind
-#GNATFLAGS=-gnat95 -gnatv -O3 -gnatp -gnatf --GNATBIND="gnatbind -static"
-#For Linux
-#GNATMAKE=gnatmake
-#GNATBIND=gnatbind
-#GNATFLAGS=-gnat95 -gnatv -O3 -fPIC -gnatp -gnatf --GNATBIND="gnatbind -static"
+#GNATMAKE=
+#GNATBIND=
+#GNATFLAGS=
+#PYTHON=
 #################
 PHCRoot=../PHCsource
 PHCLib=$(PHCRoot)/Lib
@@ -68,7 +64,7 @@ MVOBJ=$(MVRoot)/cell_stack.o $(MVRoot)/form_lp.o $(MVRoot)/index_tree_lp.o \
 #phc.so: b_cy2ada.c phc.pyx mv_glue.o
 
 phc.so: b_cy2ada.c phc.pyx
-	python setup.py build_ext
+	$(PYTHON) setup.py build_ext
 
 b_cy2ada.c: PHCbuild
 	cd PHCbuild; $(GNATMAKE) -c $(INCLULIBS) $(GNATFLAGS) ../cy2ada
@@ -85,4 +81,4 @@ clean :
 	-rm -rf PHCbuild build phc.c phc.so b_cy2ada.c
 
 extension: b_cy2ada.c phc.pyx
-	python setup.py build_ext
+	$(PYTHON) setup.py build_ext
