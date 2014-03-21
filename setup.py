@@ -4,7 +4,7 @@ from Cython.Distutils import build_ext
 import os.path as path
 from subprocess import Popen, PIPE
 from os import environ
-import sys
+import sys, site
 
 def which(executable):
     execpath, errs = Popen(['which', executable],
@@ -31,11 +31,7 @@ if sys.platform == 'darwin':
     if not gnatlink:
         from make import darwin_gnat_fallback_dir
         gnatlink= darwin_gnat_fallback_dir + '/gnatlink'
-    try:
-        import sage
-        Adaobjs += ['/Users/culler/Sage/sage-4.8/local/lib/libpython2.6.dylib']
-    except ImportError:
-        Adaobjs += ['/Library/Frameworks/Python.framework/Versions/2.7/lib/libpython2.7.dylib']
+    Adaobjs += [site.PREFIXES[0] + '/lib/libpython2.7.dylib']
 # Use the gnatlink command in place of the gcc linker
 # NOTE: newer versions of gnatlink do not accept the -C flag.
 environ['LDSHARED'] = gnatlink
