@@ -404,7 +404,7 @@ package body Cy2ada is
 
       mv(integer32(N), integer32(M), Ind, Cnt, Supp, Stlb,
          integer32(R), Mtype, Perm, Idx, Vtx, Lift, integer32(Size),
-	 integer32(Nb), Cells, Mixvol);
+	 integer32(Nb), Cells, Mixvol, true);
       -- Put("The mixed volume is ");  Put(mixvol, 1);  Put_Line(".");
       -- Put("There are ");  Put(nb, 1);  Put_Line(" mixed cells.");
       -- Put_Line("Creating a regular mixed-cell configuration ...");
