@@ -27,6 +27,7 @@ with Standard_Complex_VecVecs;
 with Standard_Complex_Norms_Equals;      use Standard_Complex_Norms_Equals;
 with Arrays_of_Integer_Vector_Lists;
 with Arrays_of_Integer_Vector_Lists_io;
+with Lists_of_Floating_Vectors;
 with Arrays_of_Floating_Vector_Lists;
 with Arrays_of_Floating_Vector_Lists_io;
 with Parse_Polynomial_Exceptions;        use Parse_Polynomial_Exceptions;
@@ -322,8 +323,90 @@ package body Cy2ada is
       Sys2.Num_Solns := Result + Sys2.Num_Solns;
       return natural32(Result);
    end Add_Solutions;
-
+   
+   -- Avoids using Lifted_Supports, which seems to be broken.
    function Mixed_Volume_Algorithm
+     (
+      N         : in natural32; -- number of variables = number of polys
+      M         : in natural32; -- total size of support
+      Indices   : in Int_Ptr;   -- starting index for support of each poly
+      Sizes     : in Int_Ptr;   -- size of the support for each poly
+      Supports  : in Int_Ptr    -- flattened support vector.  M blocks of N
+	                        -- integers, each representing a degree.
+     ) return Link_To_Solved_System is
+      Index_Ptr : Int_Ptr := Indices;
+      Size_Ptr  : Int_Ptr := Sizes;
+      Supp_Ptr  : Int_Ptr := Supports;
+      R         : natural32;
+      Mix,Perm  : Standard_Integer_Vectors.Link_to_Vector;
+      Ind       : Standard_Integer_Vectors.Vector(1..integer32(N));
+      Cnt       : Standard_Integer_Vectors.Vector(1..integer32(N));
+      Supp      : Standard_Integer_Vectors.Vector(1..integer32(N*M));
+      Sub       : Mixed_Subdivision;
+      Mixvol    : natural32;
+      Q         : Link_To_Poly_Sys := new Poly_Sys(1..integer32(N));
+      Qsols     : Solution_List;
+      Result    : Link_To_Solved_System := New Solved_System;
+      Points    : Arrays_Of_Floating_Vector_Lists.Array_Of_Lists(1..Integer32(N));
+      LastPoint : Lists_Of_Floating_Vectors.List;
+      Z         : Integer32;
+      Vec       : Standard_Floating_Vectors.Link_To_Vector;
+   begin
+      -- Copy the indices and sizes into PHC vectors for mv
+      for I in 1..Integer32(N) loop -- 
+         Ind(I) := integer32(Index_Ptr.all); -- PHC vector of indices
+         Cnt(I) := integer32(Size_Ptr.all);  -- PHC vector of sizes
+         Increment(Index_Ptr);
+         Increment(Size_Ptr);
+      end loop;
+      -- Copy the support into a PHC vector
+      for I in 1..integer32(N*M) loop
+         Supp(integer32(I)) := integer32(Supp_Ptr.all);
+         Increment(Supp_Ptr);
+      end loop;
+      -- Put("Computing mixed volume"); New_Line;
+      Compute_Mixed_Volume(N, M, Ind,  Cnt, Supp, 0.0,
+                           R, Mix, Perm, Sub, MixVol);
+      -- Generate input for the Occurred_Lifting function:
+      -- function Occurred_Lifting
+      --         ( n : integer32; mix : Standard_Integer_Vectors.Vector;
+      --           points : Array_of_Lists; mixsub : Mixed_Subdivision )
+      --         return Array_of_Lists;
+      Z := 1;
+      for I in 1..Integer32(N) loop  -- one list for each polynomial
+	 for J in 1..Cnt(I) loop     -- one vector for each term
+	    Vec := new Standard_Floating_Vectors.Vector(1..Integer32(N));
+	    for K in 1..Integer32(N) loop
+	       Vec(K) := double_float(Supp(Z));
+	       Z := Z+1;
+	    end loop;
+	    Lists_Of_Floating_Vectors.Append(Points(I), LastPoint, Vec);
+	 end loop;
+      end loop;
+      declare
+	 Lifted : constant Arrays_of_Floating_Vector_Lists.Array_of_Lists(Mix'range)
+	        := Floating_Lifting_Utilities.Lifted_Supports(mix'last, Sub);
+      begin
+         -- Put("Solving the random system:"); New_Line;
+	 -- The "4" enables a certain amount of parallel computation.
+         Random_Coefficient_System(4, Integer32(N), Mix.all, Lifted, Sub,
+				   Q.all, Qsols);
+         -- Put(Q.all); New_Line;
+         -- Put(Qsols); New_Line;
+      end;
+      
+      Result.all.System := new Poly_Sys(Q'Range);
+      for K in Q'Range loop
+         Result.all.System(Perm(K-1)+1) := Q(K);
+         end loop;
+      -- Should we be freeing Q here?
+      Result.all.Num_Solns := Mixvol;
+      Result.all.Solutions := Qsols;
+      return Result;
+   end Mixed_Volume_Algorithm;
+   
+   -- Uses Lifted_Supports, which seems to be broken. 
+   function XXMixed_Volume_Algorithm
      (
       N         : in natural32; -- number of variables = number of polys
       M         : in natural32; -- total size of support
@@ -377,8 +460,8 @@ package body Cy2ada is
       Result.all.Num_Solns := Mixvol;
       Result.all.Solutions := Qsols;
       return Result;
-   end Mixed_Volume_Algorithm;
-
+   end XXMixed_Volume_Algorithm;
+   
    procedure Compute_Mixed_Volume
      (
       N        : in  natural32; -- number of variables = number of polys
@@ -433,7 +516,7 @@ package body Cy2ada is
          Mix(I ) := Mtype(I-1);
          -- Put(Mix(I),1); Put(", ");
       end loop;
-      New_Line;
+      -- New_Line;
       -- Put("Permutation: "); New_Line;
       -- Put(Perm); New_Line;
    end Compute_Mixed_Volume;
