@@ -255,6 +255,7 @@ cdef class PHCSystem:
     cdef build_starter(self):
         cdef int *supp_array, *sizes, *indices
         cdef int i, j, k, p, dim, count
+        cdef void* starter
         dim = len(self)
         sizes = <int *> malloc( len(self)*sizeof(int) )
         indices = <int *> malloc( len(self)*sizeof(int) )
@@ -272,9 +273,11 @@ cdef class PHCSystem:
                 for k in range(dim):
                     supp_array[p] = support[j][k]
                     p += 1
-
         self.solved_starter = mixed_volume_algorithm(dim, count, indices,
                                              sizes, supp_array)
+        if self.solved_starter == NULL:
+            raise RuntimeError('Oops!  PHC crashed.')
+
         poly_list = []
         for i in range(dim):
             P = PHCPoly(self.ring, '')
