@@ -6,6 +6,10 @@ with Interfaces.C.Pointers;
 with Interfaces.C.Extensions;            use Interfaces.C.Extensions;
 with Symbol_Table;                       use Symbol_Table;
 with Strings_And_Numbers;                use Strings_And_Numbers;
+with Standard_Natural_Numbers;           use Standard_Natural_Numbers;
+with Standard_Natural_Numbers_Io;        use Standard_Natural_Numbers_Io;
+with Standard_Integer_Numbers;           use Standard_Integer_Numbers;
+with Standard_Integer_Numbers_Io;        use Standard_Integer_Numbers_Io;
 with Standard_Floating_Numbers;          use Standard_Floating_Numbers;
 with Standard_Floating_Numbers_Io;       use Standard_Floating_Numbers_Io;
 with Standard_Complex_Numbers;           use Standard_Complex_Numbers;
@@ -43,7 +47,7 @@ with Floating_Lifting_Utilities;
 with Cell_Stack;                         use Cell_Stack;
 with Mixedvol_Algorithm;                 use Mixedvol_Algorithm;
 with Drivers_For_Mixedvol_Algorithm;     use Drivers_For_Mixedvol_Algorithm;
-with Standard_IncFix_Continuation;    use Standard_IncFix_Continuation;
+with Standard_IncFix_Continuation;       use Standard_IncFix_Continuation;
 with Standard_Homotopy;                  use Standard_Homotopy;
 with Continuation_Parameters;
 with Double_Double_Numbers;
@@ -355,14 +359,16 @@ package body Cy2ada is
       Compute_Mixed_Volume(N, M, Ind,  Cnt, Supp, 0.0,
                            R, Mix, Perm, Sub, MixVol);
       declare
-         LS : Arrays_of_Floating_Vector_Lists.Array_of_Lists(Mix'range)
-            := Floating_Lifting_Utilities.Lifted_Supports(mix'last,sub);
+	 Lifted : constant Arrays_of_Floating_Vector_Lists.Array_of_Lists(Mix'range)
+	        := Floating_Lifting_Utilities.Lifted_Supports(mix'last, Sub);
       begin
          -- Put("Solving the random system:"); New_Line;
-         Random_Coefficient_System(0, Integer32(N), Mix.all, LS, Sub, Q.all, Qsols);
+         Random_Coefficient_System(0, Integer32(N), Mix.all, Lifted, Sub,
+				   Q.all, Qsols);
          -- Put(Q.all); New_Line;
          -- Put(Qsols); New_Line;
       end;
+      
       Result.all.System := new Poly_Sys(Q'Range);
       for K in Q'Range loop
          Result.all.System(Perm(K-1)+1) := Q(K);
@@ -427,7 +433,7 @@ package body Cy2ada is
          Mix(I ) := Mtype(I-1);
          -- Put(Mix(I),1); Put(", ");
       end loop;
-      -- New_Line;
+      New_Line;
       -- Put("Permutation: "); New_Line;
       -- Put(Perm); New_Line;
    end Compute_Mixed_Volume;
@@ -495,24 +501,24 @@ package body Cy2ada is
      One : Complex_Number := Create(1.0);
      Size : Double_Float;
   begin
-     --Put("Filtering"); New_Line;
-     --Put("Tolerance: "); Put(Tolerance); New_Line;
+     -- Put("Filtering"); New_Line;
+     -- Put("Tolerance: "); Put(Tolerance); New_Line;
      if Ls.T /= One then
-        --Put("At infinity"); New_Line;
+        -- Put("At infinity"); New_Line;
         return True;
      end if;
      for I in 1..Ls.N loop
         Size := AbsVal(Ls.V(I));
-        --Put(Size);
+        -- Put(Size);
         if Size < Tolerance then
-           --Put(" Bad"); New_Line;
+           -- Put(" Bad"); New_Line;
            return True;
         end if;
         if AbsVal(Ls.V(I)) > 1.0/Tolerance then
-           --Put(" Bad"); New_Line;
+           -- Put(" Bad"); New_Line;
            return True;
         end if;
-        --Put(" Good"); New_Line;
+        -- Put(" Good"); New_Line;
      end loop;
      return False;
   end Is_Bad_Solution;
@@ -563,10 +569,12 @@ package body Cy2ada is
         := DoblDobl_Complex_Solutions.Create(P.Solutions);
   begin
      -- Put(P.Solutions);
+     -- Put("Polishing solutions ..."); New_Line;
      DoblDobl_Root_Refiner(QQ, S);
      Clear(P.Solutions);
      P.Solutions := DDSolnList_To_SolnList(S);
      -- Put(P.Solutions);
+     -- Put("Done Polishing solutions."); New_Line;
   end Polish_Solns;
 
 end Cy2ada;
