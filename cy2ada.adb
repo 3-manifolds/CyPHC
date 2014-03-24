@@ -393,6 +393,8 @@ package body Cy2ada is
 				   Q.all, Qsols);
          -- Put(Q.all); New_Line;
          -- Put(Qsols); New_Line;
+      exception
+	 when others => return Null;
       end;
       
       Result.all.System := new Poly_Sys(Q'Range);
