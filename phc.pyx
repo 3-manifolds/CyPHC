@@ -45,6 +45,9 @@ cdef extern void  do_homotopy(void* start, void* target, int allow_clustering)
 cdef extern void  filter_solns(void* solved, double* tolerance)
 cdef extern void  polish_solns(void* solved)
 
+class PHCInternalAdaException(Exception):
+    pass
+
 cdef class PHCContext:
 
     def __cinit__(self):
@@ -112,7 +115,7 @@ cdef class PHCPoly:
         ring.use()
         self.poly = new_poly(len(ring), self.initstring, &self.code)
         if self.code:
-            raise ValueError, self.errors[self.code - 1]
+            raise ValueError(self.errors[self.code - 1])
 
     def __dealloc__(self):
         free_poly(self.poly)
@@ -130,7 +133,7 @@ cdef class PHCPoly:
         cdef double Y[2]
         cdef int n, dim = self.num_unknowns() 
         if len(Z) != dim:
-            raise ValueError, 'Wrong number of values.'
+            raise ValueError('Wrong number of values.')
         reX = <double *>malloc(dim*sizeof(double))
         imX = <double *>malloc(dim*sizeof(double))
         for n in range(dim):
@@ -168,7 +171,7 @@ cdef class PHCPoly:
         cdef double coeff[2]
         cdef int n, dim = len(degrees)
         if dim != self.num_unknowns():
-            raise ValueError, 'Degree tuple has wrong size'
+            raise ValueError('Degree tuple has wrong size')
         degree_array = <int *>malloc(dim*sizeof(int))
         
         for n in range(dim):
@@ -222,7 +225,7 @@ cdef class PHCSystem:
         self.polys = tuple(polys)
         for p in polys:
             if ring != p.get_ring():
-                raise ValueError, "The PHCPoly's must share the System's ring."
+                raise ValueError("The PHCPoly's must share the System's ring.")
         self.solved_starter = NULL
         self.solved_target = NULL
 
@@ -276,7 +279,7 @@ cdef class PHCSystem:
         self.solved_starter = mixed_volume_algorithm(dim, count, indices,
                                              sizes, supp_array)
         if self.solved_starter == NULL:
-            raise RuntimeError('Oops!  PHC crashed.')
+            raise PHCInternalAdaException
 
         poly_list = []
         for i in range(dim):
@@ -332,7 +335,7 @@ cdef class PHCSystem:
 
     def polish(self):
         if self.solved_target == NULL:
-            raise ValueError, 'System has not been solved yet.'
+            raise ValueError('System has not been solved yet.')
         polish_solns(self.solved_target)
         self.solutions = self.extract_solns(self.solved_target)
 
