@@ -389,7 +389,7 @@ package body Cy2ada is
       begin
          -- Put("Solving the random system:"); New_Line;
 	 -- The "4" enables a certain amount of parallel computation.
-         Random_Coefficient_System(4, Integer32(N), Mix.all, Lifted, Sub,
+         Random_Coefficient_System(1, Integer32(N), Mix.all, Lifted, Sub,
 				   Q.all, Qsols);
          -- Put(Q.all); New_Line;
          -- Put(Qsols); New_Line;
