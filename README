@@ -7,8 +7,8 @@ script getPHC.sh to download the source and create the symbolic link.
 
 Install takes two steps at the moment::
 
-* python make.py
-* python setup.py install
+   python make.py
+   python setup.py install
 
 WARNING: Requires Cython >= 13.0
 
