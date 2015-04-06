@@ -2,7 +2,7 @@ Build Instructions
 ==================
 
 If you have a copy of the PHC source files, create a symbolic link
-named PHCroot pointint to the PHC root directory. Otherwise, run the
+named PHCroot pointing to the PHC root directory. Otherwise, run the
 script getPHC.sh to download the source and create the symbolic link.
 
 Install takes two steps at the moment::
