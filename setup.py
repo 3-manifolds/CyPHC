@@ -39,7 +39,7 @@ environ['LDSHARED'] = gnatlink
 environ['LDFLAGS'] = '-shared'
 
 src = ['phc.pyx']
-inc = [path.join('PHCsource','Ada','Root_Counts','MixedVol')]
+inc = [path.join('PHCsource','src','Ada','Root_Counts','MixedVol')]
 
 setup(
     name = 'phc',

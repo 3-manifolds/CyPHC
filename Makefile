@@ -6,8 +6,8 @@
 #PYTHON=
 #################
 PHCRoot=../PHCsource
-PHCLib=$(PHCRoot)/Lib
-PHCAda=$(PHCRoot)/Ada
+PHCLib=$(PHCRoot)/src/Lib
+PHCAda=$(PHCRoot)/src/Ada
 BIN=$(PHCRoot)/bin
 INCLULIBS=-I$(PHCAda)/System \
  -I$(PHCAda)/System/Unix_Timer \

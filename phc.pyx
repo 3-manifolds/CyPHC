@@ -129,7 +129,8 @@ cdef class PHCPoly:
         return result
 
     def __call__(self, Z):
-        cdef double *reX, *imX
+        cdef double* reX
+        cdef double* imX
         cdef double Y[2]
         cdef int n, dim = self.num_unknowns() 
         if len(Z) != dim:
@@ -218,7 +219,8 @@ cdef class PHCSystem:
     rhs=0.  Instantiate with a ring and a sequence of PHCPoly's.
     """
     cdef ring, polys, start_system, start_solutions, solutions
-    cdef void *solved_starter, *solved_target
+    cdef void* solved_starter
+    cdef void* solved_target
     
     def __init__(self, ring, polys):
         self.ring = ring
@@ -256,7 +258,9 @@ cdef class PHCSystem:
         return [sorted(p.terms().keys()) for p in self]
 
     cdef build_starter(self):
-        cdef int *supp_array, *sizes, *indices
+        cdef int* supp_array
+        cdef int* sizes
+        cdef int* indices
         cdef int i, j, k, p, dim, count
         cdef void* starter
         dim = len(self)
@@ -299,7 +303,9 @@ cdef class PHCSystem:
 
     cdef extract_solns(self, void* solved_system):
         cdef int num_solns, i, mult, dim=len(self)
-        cdef double *real, *imag, info[3]
+        cdef double* real
+        cdef double* imag
+        cdef double info[3]
         num_solns = get_num_solns(solved_system)
         real = <double*>malloc( (1+dim)*sizeof(double) )
         imag = <double*>malloc( (1+dim)*sizeof(double) )
