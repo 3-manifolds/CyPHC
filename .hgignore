@@ -3,5 +3,7 @@ PHCbuild
 PHCsource
 PHCpack*
 build
+dist
+*.egg-info
 *.pyc
 phc.c

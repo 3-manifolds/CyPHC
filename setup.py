@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
 import os.path as path
@@ -42,12 +42,14 @@ src = ['phc.pyx']
 inc = [path.join('PHCsource','src','Ada','Root_Counts','MixedVol')]
 
 setup(
-    name = 'phc',
-    version = '1.0',
+    name = 'cyphc',
+    version = '1.1',
     description = 'Python interface to PHC',
     author = 'Marc Culler',
     cmdclass = {'build_ext': build_ext},
-    ext_modules = [Extension('phc',
+    packages = ['cyphc'],
+    package_dir = {'cyphc': 'cyphc_src'},
+    ext_modules = [Extension(name='cyphc.phc',
                              sources=src,
                              include_dirs=inc,
                              extra_objects=Adaobjs)]
