@@ -1,7 +1,6 @@
 #!/bin/bash
-https://github.com/janverschelde/PHCpack/archive/v2.3.97.tar.gz
-PHCDIR=PHCpack-2.3.97
-PHCTAR=v2.3.97.tar.gz
+PHCDIR=PHCpack-2.4.47
+PHCTAR=v2.4.47.tar.gz
 PHCURL=https://github.com/janverschelde/PHCpack/archive/$PHCTAR
 curl -L -O $PHCURL 
 tar xvfz $PHCTAR
