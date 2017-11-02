@@ -1,0 +1,7 @@
+syntax: glob
+PHCbuild
+PHCsource
+PHCpack*
+build
+*.pyc
+phc.c
