@@ -551,7 +551,7 @@ package body Cy2ada is
       if Allow_Clustering > 0 then
          Tol_Endg_Distance := 0.0;
       end if;
-      Silently_Continue(Sols, False, Target);
+      Silently_Continue(Sols, False, 0, Target);
       P.all.Num_Solns :=  Q.all.Num_Solns;
       P.all.Solutions := Sols;
       -- Put(Sols);

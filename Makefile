@@ -11,6 +11,7 @@ PHCAda=$(PHCRoot)/src/Ada
 BIN=$(PHCRoot)/bin
 INCLULIBS=-I$(PHCAda)/System \
  -I$(PHCAda)/System/Unix_Timer \
+ -I$(PHCAda)/Math_Lib/Circuits \
  -I$(PHCAda)/Math_Lib/Divisors \
  -I$(PHCAda)/Math_Lib/Functions \
  -I$(PHCAda)/Math_Lib/Matrices \
