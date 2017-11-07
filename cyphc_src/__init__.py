@@ -1,5 +1,5 @@
 import signal
-handler = signal.get_signal(signal.SIGINT)
+handler = signal.getsignal(signal.SIGINT)
 from .phc import *
 try:
     import cysignals
