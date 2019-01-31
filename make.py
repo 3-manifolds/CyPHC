@@ -9,7 +9,7 @@ def which(executable):
     execpath, errs = Popen(['which', executable],
                            stdout=PIPE, stderr=PIPE).communicate()
     if execpath:
-        return execpath.strip()
+        return str(execpath.strip())
 
 if __name__ == '__main__':
     # Find gnats.
