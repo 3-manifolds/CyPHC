@@ -2,14 +2,11 @@ darwin_gnat_fallback_dir = '/usr/local/gnat/bin'
 #darwin_gnat_fallback_dir = '/pkgs/gnat/bin'
 
 from os import environ
-import sys
-from subprocess import Popen, PIPE, call
+import sys, subprocess
 
 def which(executable):
-    execpath, errs = Popen(['which', executable],
-                           stdout=PIPE, stderr=PIPE).communicate()
-    if execpath:
-        return str(execpath.strip())
+    ans = subprocess.check_output(['which', executable])
+    return ans.decode('ascii').strip()
 
 if __name__ == '__main__':
     # Find gnats.
@@ -46,4 +43,4 @@ if __name__ == '__main__':
         print('Unknown platform')
         sys.exit()
     
-    call(args)
+    subprocess.call(args)
