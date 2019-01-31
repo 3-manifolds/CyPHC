@@ -2,15 +2,12 @@ from setuptools import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
 import os.path as path
-from subprocess import Popen, PIPE
 from os import environ
-import sys, site
+import sys, site, subprocess
 
 def which(executable):
-    execpath, errs = Popen(['which', executable],
-                           stdout=PIPE, stderr=PIPE).communicate()
-    if execpath:
-        return str(execpath.strip())
+    ans = subprocess.check_output(['which', executable])
+    return ans.decode('ascii').strip()
 
 gnatlink = which('gnatlink')
 
