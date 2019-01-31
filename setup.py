@@ -10,7 +10,7 @@ def which(executable):
     execpath, errs = Popen(['which', executable],
                            stdout=PIPE, stderr=PIPE).communicate()
     if execpath:
-        return execpath.strip()
+        return str(execpath.strip())
 
 gnatlink = which('gnatlink')
 
