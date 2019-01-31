@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     if sys.platform == 'darwin':
         args.append('GNATFLAGS=-gnat05 -gnatv -O3 -gnatp -gnatf ')
-    elif sys.platform == 'linux2':
+    elif sys.platform.startswith('linux'):
         args += ['GNATFLAGS=-gnat05 -gnatv -O3 -gnatp -gnatf -fPIC ',
                  'GCCFLAGS=-fPIC' 
                  ]
