@@ -24,7 +24,7 @@ if __name__ == '__main__':
             gnatbind = darwin_gnat_fallback_dir + '/gnatbind'
     
     if gnatmake is None or gnatbind is None:
-        print "gnat is not in your path"
+        print('gnat is not in your path')
         sys.exit()
 
     # Set make variables according to platform.
@@ -43,7 +43,7 @@ if __name__ == '__main__':
                  'GCCFLAGS=-fPIC' 
                  ]
     else:
-        print 'Unknown platform'
+        print('Unknown platform')
         sys.exit()
     
     call(args)
