@@ -3,7 +3,7 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 import os.path as path
 from os import environ
-import sys, site, subprocess
+import sys, site, subprocess, sysconfig
 
 def which(executable):
     ans = subprocess.check_output(['which', executable])
@@ -28,7 +28,8 @@ if sys.platform == 'darwin':
     if not gnatlink:
         from make import darwin_gnat_fallback_dir
         gnatlink= darwin_gnat_fallback_dir + '/gnatlink'
-    Adaobjs += [site.PREFIXES[0] + '/lib/libpython2.7.dylib']
+    version = sysconfig.get_python_version()
+    Adaobjs += [site.PREFIXES[0] + '/lib/libpython' + version + '.dylib']
 # Use the gnatlink command in place of the gcc linker
 # NOTE: newer versions of gnatlink do not accept the -C flag.
 environ['LDSHARED'] = gnatlink
