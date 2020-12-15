@@ -1,3 +1,5 @@
+# cython: language_level=3, c_string_type=unicode, c_string_encoding=utf8
+
 cdef extern from "stdlib.h":
     ctypedef unsigned long size_t
     void* malloc(size_t size)

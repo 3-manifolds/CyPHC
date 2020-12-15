@@ -41,7 +41,7 @@ inc = [path.join('PHCsource','src','Ada','Root_Counts','MixedVol')]
 
 setup(
     name = 'cyphc',
-    version = '1.1',
+    version = '1.2',
     description = 'Python interface to PHC',
     author = 'Marc Culler',
     cmdclass = {'build_ext': build_ext},
